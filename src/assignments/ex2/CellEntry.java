@@ -4,6 +4,7 @@ package assignments.ex2;
 public class CellEntry  implements Index2D {
     private char x;
     private int y;
+    private String cord;
 
 
     @Override
@@ -19,6 +20,12 @@ public class CellEntry  implements Index2D {
     public CellEntry(char x, int y) {
         this.x = x;
         this.y = y;
+        cord=x+String.valueOf(y);
+    }
+    public CellEntry(int x, int y) {
+        this.x=(char) ('A' + x);
+        this.y= y;
+        cord=x+String.valueOf(y);
     }
     public CellEntry() {
         x=' ';
@@ -32,4 +39,5 @@ public class CellEntry  implements Index2D {
 
     @Override
     public int getY() {return y;}
+
 }
