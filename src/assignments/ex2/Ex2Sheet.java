@@ -26,6 +26,7 @@ public class Ex2Sheet implements Sheet {
     }
     //computeform-if form
     @Override
+
     public String value(int x, int y) {
         String ans = Ex2Utils.EMPTY_CELL;
         if (isIn(x, y)) {
@@ -113,11 +114,41 @@ public class Ex2Sheet implements Sheet {
     }
 
     @Override
+    public void load(String fileName) throws IOException {
+        // Add your code here
+
+        /////////////////////
+    }
+
+    @Override
+    public void save(String fileName) throws IOException {
+        // Add your code here
+
+        /////////////////////
+    }
+
+    @Override
+    public String eval(int x, int y) {
+        String ans = null;
+        if(get(x,y)!=null) {ans = get(x,y).toString();}
+        // Add your code here
+
+        /////////////////////
+        return ans;
+    }
+
+    @Override
     public int[][] depth() {
         int[][] ans = new int[width()][height()];
         //initiate all the places with -1
         for (int i = 0; i < width(); i++) {
             for (int j = 0; j < height(); j++) {
+                if(table[i][j].getType()==Ex2Utils.TEXT||table[i][j].getType()==Ex2Utils.NUMBER) {
+                    ans[i][j] =0;
+
+                }else {
+                    ans[i][j] = -1;
+                }
                 ans[i][j] = -1;
             }
         }
@@ -134,10 +165,12 @@ public class Ex2Sheet implements Sheet {
                 for (int y = 0; y < height(); y++) {
                     name="";
                     name= String.valueOf(numToInt(x)+y);
-                    if (canBeComputedNow(value(x,y),list,name)) {
-                        ans[x][y] = depth;
-                        count++;
-                        flagC = true;
+                    if(ans[x][y]!=0) {
+                        if (canBeComputedNow(name, list, value(x, y))) {
+                            ans[x][y] = depth;
+                            count++;
+                            flagC = true;
+                        }
                     }
                 }
             }
@@ -177,22 +210,23 @@ public class Ex2Sheet implements Sheet {
         return '0';
     }
     private boolean canBeComputedNow (String name, List<String> cord, String format) {
-
+       if (format=="") {
+           return false;}
         if(isTextS(format)) {
-            setCellType(name,-2);
+            setCellType(name,-2);//set type for an error form
             return false;
         }
         //canot be compute
         if(isNumberS(format)) {return true;}
         if (!isFormS(format)) {return false;}
-        if (!containsLetters(name)) {return true;}
-        List<String> pointer1=cord;
-        List<String> dependCells=extractCoordinates(format);
-        List<String> pointer2=dependCells;
+        if (!containsLetters(name)) {return true;}//valid format
+        List<String> pointer1=cord;//exist list pointer
+        List<String> dependCells=extractCoordinates(format);//the list of the cells that the current cell(index=name) are depend on
+        List<String> pointer2=dependCells;//his pointer
             for (String str1 : pointer1) {//str1 takes on the value of each element in pointer1 one by one.
                 if (pointer2.contains(str1))//if it cycles
                 {
-                    setCellType(name,-1);
+                    setCellType(name,-1);// set for an error cycle
                     return false;
                 }
                 if (pointer2.contains(name)) {//if it cycles
@@ -201,6 +235,7 @@ public class Ex2Sheet implements Sheet {
                 }
             }
             pointer2=dependCells;
+            cord.addAll(dependCells);
             for(int i=0; i<dependCells.size(); i++)
             {
                 String element = pointer2.get(i);
@@ -213,7 +248,9 @@ public class Ex2Sheet implements Sheet {
                     y= Integer.parseInt(element.substring(1));
                 }
                 String neform=table[x][y].getData();
-                canBeComputedNow(element, pointer1,neform);
+                List<String> newCord = new ArrayList<>(cord); // Create a copy of cord
+                newCord.add(pointer2.get(i)); // Add the new element to the copy
+                canBeComputedNow(element, newCord,neform);
             }
             return true;
     }
@@ -242,32 +279,6 @@ public class Ex2Sheet implements Sheet {
         // Convert the Set back to a List (to return a List)
         return new ArrayList<>(coordinatesSet);
     }
-
-
-
-    @Override
-    public void load(String fileName) throws IOException {
-        // Add your code here
-
-        /////////////////////
-    }
-
-    @Override
-    public void save(String fileName) throws IOException {
-        // Add your code here
-
-        /////////////////////
-    }
-
-    @Override
-    public String eval(int x, int y) {
-        String ans = null;
-        if(get(x,y)!=null) {ans = get(x,y).toString();}
-        // Add your code here
-
-        /////////////////////
-        return ans;
-        }
 
 
     private String formatNumber(double num) {
@@ -384,4 +395,10 @@ public class Ex2Sheet implements Sheet {
 
         return !expectingNumber;  // Should not end expecting a number
     }
+
+
+
+
+
+
 }
