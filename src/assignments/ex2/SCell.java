@@ -174,18 +174,34 @@ public class SCell implements Cell {
 
             if (Character.isDigit(c) || Character.isLetter(c) || c == '.') {
                 if (!expectingNumber) return false;
-                // Handle decimal numbers or cell references
+
                 boolean hasDecimal = false;
+                boolean hasLetter = false;
+                boolean hasDigit = false;
+
+                // Validate sequence of digits/letters
                 while (i < text.length() &&
                         (Character.isDigit(text.charAt(i)) ||
                                 Character.isLetter(text.charAt(i)) ||
                                 text.charAt(i) == '.')) {
-                    if (text.charAt(i) == '.') {
-                        if (hasDecimal) return false;  // Can't have two decimals
+                    char current = text.charAt(i);
+
+                    if (current == '.') {
+                        if (hasDecimal || hasLetter) return false;  // Can't have two decimals or a letter in a number
                         hasDecimal = true;
+                    } else if (Character.isLetter(current)) {
+                        if (hasDecimal || hasDigit) return false;  // Can't have letters in the middle of a number
+                        hasLetter = true;
+                    } else if (Character.isDigit(current)) {
+                        hasDigit = true;
                     }
+
                     i++;
                 }
+
+                // Cell reference must be a letter followed by digits (e.g., A3)
+                if (hasLetter && !hasDigit) return false;
+
                 i--;  // Adjust for the loop increment
                 expectingNumber = false;
                 continue;
@@ -196,6 +212,81 @@ public class SCell implements Cell {
 
         return !expectingNumber;  // Should not end expecting a number
     }
+
+
+
+//    public boolean isForm(String str) {
+//        // 1. Basic validation
+//        if (str == null || !str.startsWith("=")) return false;
+//
+//        String text = str.substring(1);  // Remove '='
+//        if (text.isEmpty()) return false;
+//
+//        // Special case: if it's just a number after '='
+//        try {
+//            Double.parseDouble(text);
+//            return true;  // Valid if it's just a number
+//        } catch (NumberFormatException e) {
+//            // Continue checking if it's not just a simple number
+//        }
+//
+//        // 2. Check parentheses balance and validity
+//        int bracketCount = 0;
+//        for (char c : text.toCharArray()) {
+//            if (c == '(') bracketCount++;
+//            if (c == ')') bracketCount--;
+//            if (bracketCount < 0) return false;
+//        }
+//        if (bracketCount != 0) return false;
+//
+//        // 3. Check each character and operation
+//        boolean expectingNumber = true;  // true if we expect a number/letter, false if we expect an operator
+//        for (int i = 0; i < text.length(); i++) {
+//            char c = text.charAt(i);
+//
+//            if (c == ' ') continue;  // Skip spaces
+//
+//            if (c == '(') {
+//                if (!expectingNumber) return false;
+//                continue;
+//            }
+//
+//            if (c == ')') {
+//                if (expectingNumber) return false;
+//                expectingNumber = false;
+//                continue;
+//            }
+//
+//            if ("+-*/".indexOf(c) != -1) {  // Is operator
+//                if (expectingNumber) return false;
+//                expectingNumber = true;
+//                continue;
+//            }
+//
+//            if (Character.isDigit(c) || Character.isLetter(c) || c == '.') {
+//                if (!expectingNumber) return false;
+//                // Handle decimal numbers or cell references
+//                boolean hasDecimal = false;
+//                while (i < text.length() &&
+//                        (Character.isDigit(text.charAt(i)) ||
+//                                Character.isLetter(text.charAt(i)) ||
+//                                text.charAt(i) == '.')) {
+//                    if (text.charAt(i) == '.') {
+//                        if (hasDecimal) return false;  // Can't have two decimals
+//                        hasDecimal = true;
+//                    }
+//                    i++;
+//                }
+//                i--;  // Adjust for the loop increment
+//                expectingNumber = false;
+//                continue;
+//            }
+//
+//            return false;  // Invalid character
+//        }
+//
+//        return !expectingNumber;  // Should not end expecting a number
+//    }
 
     //return if tha char is allowed
     public boolean allowedSign(char sign) {

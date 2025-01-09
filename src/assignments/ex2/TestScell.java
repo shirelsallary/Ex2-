@@ -52,8 +52,8 @@ public class TestScell {
     }
     @Test
     public void testisForm() {
-        SCell cell = new SCell("=a0");
-        assertTrue(cell.isForm(cell.getText()));
+        SCell cell = new SCell("=ou+9");
+        assertFalse(cell.isForm(cell.getText()));
         cell.setText("=(1+2)*3/(A4+4)");
         assertTrue(cell.isForm(cell.getText()));
         cell.setText("=1.125");

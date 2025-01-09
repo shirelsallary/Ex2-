@@ -53,18 +53,20 @@ public class Ex2Sheet implements Sheet {
     }
 
 
-    public void setCellType(String cell,int t)
-    {
-        int x=cell.charAt(0)-'A';
-        int y=0;
-        if(cell.length()==2){
-             y=cell.charAt(1);
+    public int setCellType(String cell, int t) {
+        int x = cell.charAt(0) - 'A'; // Convert 'A' to 0, 'B' to 1, etc.
+        int y = 0;
+
+        if (cell.length() == 2) {
+            y = cell.charAt(1) - '0'; // Correctly convert '3' to 3
+        } else if (cell.length() == 3) {
+            y = Integer.parseInt(cell.substring(1)); // Handle multi-digit row numbers
         }
-        if(cell.length()==3){
-            y= Integer.parseInt(cell.substring(1));
-        }
-        table[x][y].setType(t);
+
+        table[x][y].setType(t); // Assuming table[x][y] is valid and has a setType method
+        return x;
     }
+
 
     public SCell get(int x, int y) {
 
@@ -279,66 +281,6 @@ public class Ex2Sheet implements Sheet {
         return false;
     }
 
-
-//
-//   public boolean canBeComputedNow (String name, List<String> cord, String format) {
-//
-//       if (format ==" ")
-//       {
-//           return false;
-//       }
-//
-//        if(isTextS(format))
-//        {
-//            setCellType(name,-2);//set type for an error form
-//            return false;
-//        }
-//        //canot be compute
-//        if(isNumberS(format)) {return true;}
-//        if (!isFormS(format)) {return false;}
-//        if (!containsLetters(format)) {return true;}//valid format
-//        List<String> pointer1=cord;//exist list pointer
-//        List<String> dependCells=extractCoordinates(format);//the list of the cells that the current cell(index=name) are depend on
-//        List<String> pointer2=dependCells;//his pointer
-//            for (String str1 : pointer1) {//str1 takes on the value of each element in pointer1 one by one.
-//                if (pointer2.contains(str1))//if it cycles
-//                {
-//                    setCellType(name,-1);// set for an error cycle
-//                    return false;
-//                }
-//                if (pointer2.contains(name)) {//if it contains himself
-//                    setCellType(name,-1);
-//                    return false;
-//                }
-//            }
-//            pointer2=dependCells;
-//            cord.addAll(dependCells);
-//            for(int i=0; i<dependCells.size(); i++)
-//            {
-//                String element = pointer2.get(i);
-//                int x=element.charAt(0)-'A';
-//                int y=0;
-//               if(element.length()==2){
-//                    y=Integer.parseInt(String.valueOf(element.charAt(1)));
-//                }
-//                 else if (element.length()==3){
-//                    y= Integer.parseInt(element.substring(1));
-//                }
-//                String neform=table[x][y].getData();
-//                List<String> newCord = new ArrayList<>(cord); // Create a copy of cord
-//                newCord.add(pointer2.get(i)); // Add the new element to the copy
-//                canBeComputedNow(element, newCord,neform);
-//            }
-//            return true;
-//    }
-//    private boolean containsLetters(String s) {
-//        for(int i=0;i<s.length();i++) {
-//            char c = s.charAt(i);
-//            if(Character.isLetter(c)) {return true;}
-//        }
-//        return false;
-//    }
-    // Function to extract coordinates from a string
     public static List<String> extractCoordinates(String input) {
         // Create a Set to store unique coordinates
         Set<String> coordinatesSet = new HashSet<>();
@@ -451,18 +393,34 @@ public class Ex2Sheet implements Sheet {
 
             if (Character.isDigit(c) || Character.isLetter(c) || c == '.') {
                 if (!expectingNumber) return false;
-                // Handle decimal numbers or cell references
+
                 boolean hasDecimal = false;
+                boolean hasLetter = false;
+                boolean hasDigit = false;
+
+                // Validate sequence of digits/letters
                 while (i < text.length() &&
                         (Character.isDigit(text.charAt(i)) ||
                                 Character.isLetter(text.charAt(i)) ||
                                 text.charAt(i) == '.')) {
-                    if (text.charAt(i) == '.') {
-                        if (hasDecimal) return false;  // Can't have two decimals
+                    char current = text.charAt(i);
+
+                    if (current == '.') {
+                        if (hasDecimal || hasLetter) return false;  // Can't have two decimals or a letter in a number
                         hasDecimal = true;
+                    } else if (Character.isLetter(current)) {
+                        if (hasDecimal || hasDigit) return false;  // Can't have letters in the middle of a number
+                        hasLetter = true;
+                    } else if (Character.isDigit(current)) {
+                        hasDigit = true;
                     }
+
                     i++;
                 }
+
+                // Cell reference must be a letter followed by digits (e.g., A3)
+                if (hasLetter && !hasDigit) return false;
+
                 i--;  // Adjust for the loop increment
                 expectingNumber = false;
                 continue;
@@ -473,6 +431,7 @@ public class Ex2Sheet implements Sheet {
 
         return !expectingNumber;  // Should not end expecting a number
     }
+
 
     private boolean isCellReference(String text) {
         if (text.length() < 2) return false;
@@ -490,6 +449,114 @@ public class Ex2Sheet implements Sheet {
             return false;
         }
     }
+
+
+public String getLineFromScell(String element)
+{
+    int x=element.charAt(0)-'A';
+    int y=0;
+    if(element.length()==2){
+        y=element.charAt(1);
+    }
+    else if (element.length()==3){
+        y= Integer.parseInt(element.substring(1));
+    }
+     return table[x][y].getData();
+}
+
+
+    private char numToChar(int x){
+        if(x==0) return 'A';
+        if(x==1) return 'B';
+        if(x==2) return 'C';
+        if(x==3) return 'D';
+        if(x==4) return 'E';
+        if(x==5) return 'F';
+        if(x==6) return 'G';
+        if(x==7) return 'H';
+        if(x==8) return 'I';
+        if(x==9) return 'J';
+        if(x==10) return 'K';
+        if(x==11) return 'L';
+        if(x==12) return 'M';
+        if(x==13) return 'N';
+        if(x==14) return 'O';
+        if(x==15) return 'P';
+        if(x==16) return 'Q';
+        if(x==17) return 'R';
+        if(x==18) return 'S';
+        if(x==19) return 'T';
+        if(x==20) return 'U';
+        if(x==21) return 'V';
+        if(x==22) return 'W';
+        if(x==23) return 'X';
+        if(x==24) return 'Y';
+        if(x==25) return 'Z';
+        return '0';
+    }
+
+
+
+    public double computeForm(String form) {
+        if (form.charAt(0) == '=') form = form.substring(1);
+
+        if (form.indexOf("(") != -1) {
+            int openIndex = form.indexOf("(");
+            int temp = 0;
+            for (int i = openIndex; i < form.length(); i++) { //Count the brackets
+                if (form.charAt(i) == '(') {
+                    temp++;
+                }
+
+                if (form.charAt(i) == ')') {
+                    temp--;
+                    if (temp == 0) {
+                        double sograym = computeForm(form.substring(openIndex + 1, i)); //Solve the formula inside the brackets
+                        String first = (form.substring(0, openIndex));
+                        String second = String.valueOf(form.substring(i + 1, form.length()));
+                        form = first + sograym + second; //New string with the new value of brakes
+                        form = String.valueOf(computeForm(form)); //doing it until there is no more brakes
+                    }
+                }
+            }
+        }
+        if (form.contains("+")) {//Calculate connection
+            int ind1 = form.indexOf("+");
+            double result1 = (int) computeForm(form.substring(0, ind1));
+            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            return result1 + result2;
+        }
+        if (form.contains("-")) {//calculate subtraction
+            int ind1 = form.indexOf("-");
+            double result1 = (int) computeForm(form.substring(0, ind1));
+            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            return result1 - result2;
+        }
+        if (form.contains("/")) { //Calculate division
+            int ind1 = form.indexOf("/");
+            double result1 = (int) computeForm(form.substring(0, ind1));
+            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            return result1 / result2;
+        }
+        if (form.contains("*")) {//calculate multiplication
+            int ind1 = form.indexOf("*");
+            double result1 = (int) computeForm(form.substring(0, ind1));
+            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            return result1 * result2;
+        }
+
+
+        return Double.parseDouble(form);
+
+    }
+
+
+
+
+
+}
+
+
 
 //    private boolean isCellReference(String text) {
 //        if (text.length() < 2) return false;
@@ -615,107 +682,62 @@ public class Ex2Sheet implements Sheet {
 //
 //}
 
-public String getLineFromScell(String element)
-{
-    int x=element.charAt(0)-'A';
-    int y=0;
-    if(element.length()==2){
-        y=element.charAt(1);
-    }
-    else if (element.length()==3){
-        y= Integer.parseInt(element.substring(1));
-    }
-     return table[x][y].getData();
-}
-
-
-    private char numToChar(int x){
-        if(x==0) return 'A';
-        if(x==1) return 'B';
-        if(x==2) return 'C';
-        if(x==3) return 'D';
-        if(x==4) return 'E';
-        if(x==5) return 'F';
-        if(x==6) return 'G';
-        if(x==7) return 'H';
-        if(x==8) return 'I';
-        if(x==9) return 'J';
-        if(x==10) return 'K';
-        if(x==11) return 'L';
-        if(x==12) return 'M';
-        if(x==13) return 'N';
-        if(x==14) return 'O';
-        if(x==15) return 'P';
-        if(x==16) return 'Q';
-        if(x==17) return 'R';
-        if(x==18) return 'S';
-        if(x==19) return 'T';
-        if(x==20) return 'U';
-        if(x==21) return 'V';
-        if(x==22) return 'W';
-        if(x==23) return 'X';
-        if(x==24) return 'Y';
-        if(x==25) return 'Z';
-        return '0';
-    }
-
-
-
-    public double computeForm(String form) {
-        if (form.charAt(0) == '=') form = form.substring(1);
-
-        if (form.indexOf("(") != -1) {
-            int openIndex = form.indexOf("(");
-            int temp = 0;
-            for (int i = openIndex; i < form.length(); i++) { //Count the brackets
-                if (form.charAt(i) == '(') {
-                    temp++;
-                }
-
-                if (form.charAt(i) == ')') {
-                    temp--;
-                    if (temp == 0) {
-                        double sograym = computeForm(form.substring(openIndex + 1, i)); //Solve the formula inside the brackets
-                        String first = (form.substring(0, openIndex));
-                        String second = String.valueOf(form.substring(i + 1, form.length()));
-                        form = first + sograym + second; //New string with the new value of brakes
-                        form = String.valueOf(computeForm(form)); //doing it until there is no more brakes
-                    }
-                }
-            }
-        }
-        if (form.contains("+")) {//Calculate connection
-            int ind1 = form.indexOf("+");
-            double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
-            return result1 + result2;
-        }
-        if (form.contains("-")) {//calculate subtraction
-            int ind1 = form.indexOf("-");
-            double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
-            return result1 - result2;
-        }
-        if (form.contains("/")) { //Calculate division
-            int ind1 = form.indexOf("/");
-            double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
-            return result1 / result2;
-        }
-        if (form.contains("*")) {//calculate multiplication
-            int ind1 = form.indexOf("*");
-            double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
-            return result1 * result2;
-        }
-
-
-        return Double.parseDouble(form);
-
-    }
-
-
-
-
-
-}
+//
+//   public boolean canBeComputedNow (String name, List<String> cord, String format) {
+//
+//       if (format ==" ")
+//       {
+//           return false;
+//       }
+//
+//        if(isTextS(format))
+//        {
+//            setCellType(name,-2);//set type for an error form
+//            return false;
+//        }
+//        //canot be compute
+//        if(isNumberS(format)) {return true;}
+//        if (!isFormS(format)) {return false;}
+//        if (!containsLetters(format)) {return true;}//valid format
+//        List<String> pointer1=cord;//exist list pointer
+//        List<String> dependCells=extractCoordinates(format);//the list of the cells that the current cell(index=name) are depend on
+//        List<String> pointer2=dependCells;//his pointer
+//            for (String str1 : pointer1) {//str1 takes on the value of each element in pointer1 one by one.
+//                if (pointer2.contains(str1))//if it cycles
+//                {
+//                    setCellType(name,-1);// set for an error cycle
+//                    return false;
+//                }
+//                if (pointer2.contains(name)) {//if it contains himself
+//                    setCellType(name,-1);
+//                    return false;
+//                }
+//            }
+//            pointer2=dependCells;
+//            cord.addAll(dependCells);
+//            for(int i=0; i<dependCells.size(); i++)
+//            {
+//                String element = pointer2.get(i);
+//                int x=element.charAt(0)-'A';
+//                int y=0;
+//               if(element.length()==2){
+//                    y=Integer.parseInt(String.valueOf(element.charAt(1)));
+//                }
+//                 else if (element.length()==3){
+//                    y= Integer.parseInt(element.substring(1));
+//                }
+//                String neform=table[x][y].getData();
+//                List<String> newCord = new ArrayList<>(cord); // Create a copy of cord
+//                newCord.add(pointer2.get(i)); // Add the new element to the copy
+//                canBeComputedNow(element, newCord,neform);
+//            }
+//            return true;
+//    }
+//    private boolean containsLetters(String s) {
+//        for(int i=0;i<s.length();i++) {
+//            char c = s.charAt(i);
+//            if(Character.isLetter(c)) {return true;}
+//        }
+//        return false;
+//    }
+// Function to extract coordinates from a string
