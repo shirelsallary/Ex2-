@@ -1,5 +1,5 @@
 package assignments.ex2;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -90,38 +90,99 @@ public class Ex2Sheet implements Sheet {
     @Override
     public void eval() {
         int[][] dd = depth();
-        // Add your code here
+        for(int i=0;i<width*height;i=i+1) {
+            for(int x=0;x<height;x=x+1) {
+                for (int y=0;y<height;y=y+1) {
+                    if(dd[x][y]==i)
+                    {
+                      eval(x,y);
+                    }
+                }
+            }
 
-        // ///////////////////
+        }
     }
+//    public String SendTosuitableComute(int x, int y) {
+//        String cor=numToChar(x)+"y";
+//        if(table[x][y].isText(cor)||table[x][y].isText(cor))
+//            return table[x][y].getData();
+//        else {
+//            return String.valueOf(computeForm(cor));
+//        }
+//    }
 
     @Override
     public boolean isIn(int xx, int yy) {
         return xx >= 0 && xx < width() && yy >= 0 && yy < height();
     }
 
+    // Loads the sheet from a file
     @Override
     public void load(String fileName) throws IOException {
-        // Add your code here
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line;
+        int row = 0;
 
-        /////////////////////
+        while ((line = reader.readLine()) != null && row < height()) {
+            String[] values = line.split(",");
+            for (int col = 0; col < values.length && col < width(); col++) {
+                set(col, row, values[col].trim());
+            }
+            row++;
+        }
+        reader.close();
     }
 
+    // Saves the sheet to a file
     @Override
     public void save(String fileName) throws IOException {
-        // Add your code here
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
 
-        /////////////////////
+        for (int x = 0; x < width(); x++) {
+            for (int y = 0; y < height(); y++) {
+                if (y > 0) writer.write(",");
+                writer.write(value(x, y)); // Write the value of each cell
+            }
+            writer.newLine();
+        }
+        writer.close();
     }
+
 
     @Override
     public String eval(int x, int y) {
-        String ans = null;
-        if(get(x,y)!=null) {ans = get(x,y).toString();}
-        // Add your code here
+        try {
+            SCell currentCell = this.table[x][y];
+            String currentText = currentCell.getText();
 
-        /////////////////////
-        return ans;
+            // Handle number
+            if (currentCell.isNumber(currentText)) {
+                return currentText;
+            }
+
+            // Handle plain text
+            if (currentCell.isText(currentText)) {
+                return currentText;
+            }
+
+            // Handle formulas
+            if (currentText.startsWith("=")) {
+                String formula = currentText.substring(1); // Remove '='
+                formula = resolveCellReferences(formula); // Resolve any cell references
+                if (formula.equals("Err_Form")) {
+                    return "Err_Form"; // Invalid reference
+                }
+                try {
+                    return String.valueOf(currentCell.computeForm(formula)); // Compute the formula
+                } catch (Exception e) {
+                    return "Err_Form"; // Error in computation
+                }
+            }
+
+            return "Err_Form"; // Invalid cell content
+        } catch (Exception e) {
+            return "Err_Form"; // General error
+        }
     }
 
     public String value(String n)
@@ -181,6 +242,9 @@ public class Ex2Sheet implements Sheet {
 
         return ans;
     }
+
+
+
 
 //    @Override
 //    public int[][] depth() {
@@ -270,14 +334,14 @@ public class Ex2Sheet implements Sheet {
                 return false;
             }
         }
-//        // Check for circular dependencies
-//        for (String str1 : cord) {
-//            if (dependCells.contains(str1)) {
-//                setCellType(name, -1);
-//                return false;
-//            }
-//
-//        }
+        // Check for circular dependencies
+        for (String str1 : cord) {
+            if (dependCells.contains(str1)) {
+                setCellType(name, -1);
+                return false;
+            }
+
+        }
 
         // Recursively check all dependent cells
         cord.addAll(dependCells);
@@ -534,7 +598,7 @@ public String getLineFromScell(String element)
 
 
 
-    public double computeForm(String form) {
+    private double computeForm(String form) {
         if (form.charAt(0) == '=') form = form.substring(1);
 
         if (form.indexOf("(") != -1) {
@@ -588,7 +652,43 @@ public String getLineFromScell(String element)
     }
 
 
+    private String resolveCellReferences(String formula) {
+        StringBuilder resolvedFormula = new StringBuilder();
+        int i = 0;
 
+        while (i < formula.length()) {
+            char c = formula.charAt(i);
+
+            if (Character.isLetter(c)) {
+                // Parse cell reference
+                int letterIndex = getLetterPosition(c);
+                int numberStart = i + 1;
+                while (numberStart < formula.length() && Character.isDigit(formula.charAt(numberStart))) {
+                    numberStart++;
+                }
+                int row = Integer.parseInt(formula.substring(i + 1, numberStart));
+                if (letterIndex < 0 || row < 0 || letterIndex >= width || row >= height) {
+                    return "Err_Form"; // Out-of-bounds reference
+                }
+                String cellValue = eval(letterIndex, row);
+                if (cellValue.equals("Err_Form")) {
+                    return "Err_Form"; // Invalid reference
+                }
+                resolvedFormula.append(cellValue); // Append resolved value
+                i = numberStart; // Move to next part of the formula
+            } else {
+                resolvedFormula.append(c);
+                i++;
+            }
+        }
+
+        return resolvedFormula.toString();
+    }
+
+    private  int getLetterPosition(char letter) {
+        char lowerCaseLetter = Character.toLowerCase(letter);
+        return lowerCaseLetter - 'a' ;
+    }
 
 
 }
