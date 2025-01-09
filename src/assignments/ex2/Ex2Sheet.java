@@ -66,10 +66,11 @@ public class Ex2Sheet implements Sheet {
         table[x][y].setType(t);
     }
 
-    @Override
     public SCell get(int x, int y) {
+
         return table[x][y];
     }
+
 
     public String getCellData(int x, int y) {
         return table[x][y].toString();
@@ -95,12 +96,12 @@ public class Ex2Sheet implements Sheet {
     }
     @Override
     public void set(int x, int y, String s) {
-        SCell c = new SCell(s,x,y);
-        table[x][y] = c;
-        // Add your code here
-
-        /////////////////////
+        if (isIn(x, y)) {
+            SCell c = new SCell(s,x,y);
+            table[x][y]=c;
+        }
     }
+
     @Override
     public void eval() {
         int[][] dd = depth();
@@ -111,11 +112,7 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public boolean isIn(int xx, int yy) {
-        boolean ans = xx>=0 && yy>=0;
-        // Add your code here
-
-        /////////////////////
-        return ans;
+        return xx >= 0 && xx < width() && yy >= 0 && yy < height();
     }
 
     @Override
@@ -200,66 +197,147 @@ public class Ex2Sheet implements Sheet {
         return ans;
     }
 
-
-
-
-   public boolean canBeComputedNow (String name, List<String> cord, String format) {
-
-       if (format ==" ")
-       {
-           return false;
-       }
-
-        if(isTextS(format))
-        {
-            setCellType(name,-2);//set type for an error form
+    public boolean canBeComputedNow(String name, List<String> cord, String format) {
+        // Check for empty format
+        if (format == null || format.trim().isEmpty()) {
             return false;
         }
-        //canot be compute
-        if(isNumberS(format)) {return true;}
-        if (!isFormS(format)) {return false;}
-        if (!containsLetters(name)) {return true;}//valid format
-        List<String> pointer1=cord;//exist list pointer
-        List<String> dependCells=extractCoordinates(format);//the list of the cells that the current cell(index=name) are depend on
-        List<String> pointer2=dependCells;//his pointer
-            for (String str1 : pointer1) {//str1 takes on the value of each element in pointer1 one by one.
-                if (pointer2.contains(str1))//if it cycles
-                {
-                    setCellType(name,-1);// set for an error cycle
-                    return false;
-                }
-                if (pointer2.contains(name)) {//if it cycles
-                    setCellType(name,-1);
-                    return false;
-                }
-            }
-            pointer2=dependCells;
-            cord.addAll(dependCells);
-            for(int i=0; i<dependCells.size(); i++)
-            {
-                String element = pointer2.get(i);
-                int x=element.charAt(0)-'A';
-                int y=0;
-               if(element.length()==2){
-                    y=element.charAt(1);
-                }
-                 else if (element.length()==3){
-                    y= Integer.parseInt(element.substring(1));
-                }
-                String neform=table[x][y].getData();
-                List<String> newCord = new ArrayList<>(cord); // Create a copy of cord
-                newCord.add(pointer2.get(i)); // Add the new element to the copy
-                canBeComputedNow(element, newCord,neform);
-            }
+
+        // If it's text, set error type and return false
+        if (isTextS(format)) {
+            setCellType(name, -2);
+            return false;
+        }
+
+        // If it's a number, it can be computed
+        if (isNumberS(format)) {
             return true;
+        }
+
+        // If it's not a formula, it cannot be computed
+        if (!isFormS(format)) {
+            return false;
+        }
+
+        // If formula contains no cell references, it can be computed
+        if (!containsLetters(format)) {
+            return true;
+        }
+
+        // Get dependent cells
+        List<String> dependCells = extractCoordinates(format);
+
+        // Check for self-reference
+        if (dependCells.contains(name)) {
+            setCellType(name, -1);
+            return false;
+        }
+
+        // Check for circular dependencies
+        for (String str1 : cord) {
+            if (dependCells.contains(str1)) {
+                setCellType(name, -1);
+                return false;
+            }
+        }
+
+        // Recursively check all dependent cells
+        cord.addAll(dependCells);
+        for (String element : dependCells) {
+            int x = element.charAt(0) - 'A';
+            int y;
+
+            if (element.length() == 2) {
+                y = Character.getNumericValue(element.charAt(1));
+            } else if (element.length() == 3) {
+                y = Integer.parseInt(element.substring(1));
+            } else {
+                return false; // Invalid cell reference format
+            }
+
+            // Check if coordinates are within table bounds
+            if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
+                return false;
+            }
+
+            String neform = table[x][y].getData();
+            List<String> newCord = new ArrayList<>(cord);
+            if (!canBeComputedNow(element, newCord, neform)) {
+                return false;
+            }
+        }
+
+        return true;
     }
+
     private boolean containsLetters(String s) {
-        for(int i=0;i<s.length();i++) {
-            char c = s.charAt(i);
-            if(Character.isLetter(c)) {return true;}
+        for (char c : s.toCharArray()) {
+            if (Character.isLetter(c)) {
+                return true;
+            }
         }
         return false;
     }
+
+
+//
+//   public boolean canBeComputedNow (String name, List<String> cord, String format) {
+//
+//       if (format ==" ")
+//       {
+//           return false;
+//       }
+//
+//        if(isTextS(format))
+//        {
+//            setCellType(name,-2);//set type for an error form
+//            return false;
+//        }
+//        //canot be compute
+//        if(isNumberS(format)) {return true;}
+//        if (!isFormS(format)) {return false;}
+//        if (!containsLetters(format)) {return true;}//valid format
+//        List<String> pointer1=cord;//exist list pointer
+//        List<String> dependCells=extractCoordinates(format);//the list of the cells that the current cell(index=name) are depend on
+//        List<String> pointer2=dependCells;//his pointer
+//            for (String str1 : pointer1) {//str1 takes on the value of each element in pointer1 one by one.
+//                if (pointer2.contains(str1))//if it cycles
+//                {
+//                    setCellType(name,-1);// set for an error cycle
+//                    return false;
+//                }
+//                if (pointer2.contains(name)) {//if it contains himself
+//                    setCellType(name,-1);
+//                    return false;
+//                }
+//            }
+//            pointer2=dependCells;
+//            cord.addAll(dependCells);
+//            for(int i=0; i<dependCells.size(); i++)
+//            {
+//                String element = pointer2.get(i);
+//                int x=element.charAt(0)-'A';
+//                int y=0;
+//               if(element.length()==2){
+//                    y=Integer.parseInt(String.valueOf(element.charAt(1)));
+//                }
+//                 else if (element.length()==3){
+//                    y= Integer.parseInt(element.substring(1));
+//                }
+//                String neform=table[x][y].getData();
+//                List<String> newCord = new ArrayList<>(cord); // Create a copy of cord
+//                newCord.add(pointer2.get(i)); // Add the new element to the copy
+//                canBeComputedNow(element, newCord,neform);
+//            }
+//            return true;
+//    }
+//    private boolean containsLetters(String s) {
+//        for(int i=0;i<s.length();i++) {
+//            char c = s.charAt(i);
+//            if(Character.isLetter(c)) {return true;}
+//        }
+//        return false;
+//    }
     // Function to extract coordinates from a string
     public static List<String> extractCoordinates(String input) {
         // Create a Set to store unique coordinates
@@ -412,6 +490,40 @@ public class Ex2Sheet implements Sheet {
             return false;
         }
     }
+
+//    private boolean isCellReference(String text) {
+//        if (text.length() < 2) return false;
+//
+//        // First character should be a letter (case insensitive)
+//        char firstChar = Character.toUpperCase(text.charAt(0));
+//        if (firstChar < 'A' || firstChar > 'Z') return false;
+//
+//        // Rest should be a valid number
+//        String numberPart = text.substring(1).toUpperCase(); // Convert the rest to uppercase in case it contains letters
+//        try {
+//            int number = Integer.parseInt(numberPart);
+//            return number >= 0;  // Ensure it's a non-negative number
+//        } catch (NumberFormatException e) {
+//            return false;
+//        }
+//    }
+
+//    private boolean isCellReference(String text) {
+//        if (text.length() < 2) return false;
+//
+//        // First character should be a letter (case insensitive)
+//        char firstChar = Character.toUpperCase(text.charAt(0));
+//        if (firstChar < 'A' || firstChar > 'Z') return false;
+//
+//        // Rest should be a valid number
+//        String numberPart = text.substring(1);
+//        try {
+//            int number = Integer.parseInt(numberPart);
+//            return number >= 0;  // Ensure it's a non-negative number
+//        } catch (NumberFormatException e) {
+//            return false;
+//        }
+//    }
 
 //
 //    public boolean isFormS(String str) {

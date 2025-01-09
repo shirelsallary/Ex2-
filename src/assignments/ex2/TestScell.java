@@ -52,7 +52,7 @@ public class TestScell {
     }
     @Test
     public void testisForm() {
-        SCell cell = new SCell("=A0");
+        SCell cell = new SCell("=a0");
         assertTrue(cell.isForm(cell.getText()));
         cell.setText("=(1+2)*3/(A4+4)");
         assertTrue(cell.isForm(cell.getText()));
@@ -75,5 +75,16 @@ public class TestScell {
         cell.setText("=(1+9)#)");
         assertFalse(cell.isForm(cell.getText()));
 
+    }
+
+    @Test
+    public void testGetData() {
+        SCell cell = new SCell("a1");
+        assertEquals("a1", cell.getData());
+        assertEquals("a1", cell.toString());
+
+        cell = new SCell("=1+2");
+        assertEquals("=1+2", cell.getData());  // Should keep the original formula
+        assertEquals("=1+2", cell.toString());
     }
 }

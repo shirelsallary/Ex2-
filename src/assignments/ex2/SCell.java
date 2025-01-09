@@ -79,6 +79,16 @@ public class SCell implements Cell {
     }
 
     public void setType() {
+        if(line!="") {
+            if (isText(line))
+                type = Ex2Utils.TEXT;
+            else if (isNumber(line)) {
+                type = Ex2Utils.NUMBER;
+            } else if (isForm(line))
+                type = Ex2Utils.FORM;
+            else
+                type = Ex2Utils.TEXT;
+        }
 
     }
 
@@ -89,6 +99,10 @@ public class SCell implements Cell {
         return line;
     }
 
+    public boolean getIsCordinataIsValid(int x, int y)
+    {
+        return cordinata.isValid();
+    }
 
     public boolean isNumber(String num) {
         boolean ans;        // Try parsing the string to  double
