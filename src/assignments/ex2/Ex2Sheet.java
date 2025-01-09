@@ -89,18 +89,18 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public void eval() {
-        int[][] dd = depth();
-        for(int i=0;i<width*height;i=i+1) {
-            for(int x=0;x<height;x=x+1) {
-                for (int y=0;y<height;y=y+1) {
-                    if(dd[x][y]==i)
-                    {
-                      eval(x,y);
-                    }
-                }
-            }
-
-        }
+//        int[][] dd = depth();
+//        for(int i=0;i<width*height;i=i+1) {
+//            for(int x=0;x<height;x=x+1) {
+//                for (int y=0;y<height;y=y+1) {
+//                    if(dd[x][y]==i)
+//                    {
+//                      eval(x,y);
+//                    }
+//                }
+//            }
+//
+//        }
     }
 //    public String SendTosuitableComute(int x, int y) {
 //        String cor=numToChar(x)+"y";
