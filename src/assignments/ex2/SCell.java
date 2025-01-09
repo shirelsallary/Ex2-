@@ -16,11 +16,7 @@ public class SCell implements Cell {
         this.cordinata = new CellEntry(x, y);
         setType();
     }
-//    public SCell() {
-//        this.line = "";
-//        this.cordinata = new CellEntry();
-//        setType();
-//    }
+
 
     @Override
     public int getOrder() {

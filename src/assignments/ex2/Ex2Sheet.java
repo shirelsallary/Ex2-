@@ -10,9 +10,13 @@ import java.util.regex.Pattern;
 
 public class Ex2Sheet implements Sheet {
     private SCell[][] table;
+    private int width;
+    private int height;
 
 
     public Ex2Sheet(int x, int y) {//גודל המערך
+        width = x;
+        height = y;
         table = new SCell[x][y];
         for(int i=0;i<x;i=i+1) {
             for(int j=0;j<y;j=j+1) {
@@ -28,28 +32,7 @@ public class Ex2Sheet implements Sheet {
     @Override
 
     public String value(int x, int y) {
-        String ans = Ex2Utils.EMPTY_CELL;
-        if (isIn(x, y)) {
-            SCell c = get(x, y);
-            if (c != null) {
-                try {
-                    double num = Double.parseDouble(c.toString());
-
-                    // Format the number as a string
-                    String formatted = formatNumber(num);
-
-                    // If the formatted string is longer than 8 characters, truncate it
-                    if (formatted.length() > 8) {
-                        formatted = formatted.substring(0, 8);
-                    }
-
-                    ans = formatted;
-                } catch (NumberFormatException e) {
-                    ans = c.toString();
-                }
-            }
-        }
-        return ans;
+       return table[x][y].getData();
     }
 
 
@@ -162,7 +145,7 @@ public class Ex2Sheet implements Sheet {
         //initiate all the places with -1
         for (int i = 0; i < width(); i++) {
             for (int j = 0; j < height(); j++) {
-                if(table[i][j].getType()==Ex2Utils.TEXT||table[i][j].getType()==Ex2Utils.NUMBER) {
+                if((table[i][j].getType()==Ex2Utils.TEXT)||(table[i][j].getType()==Ex2Utils.NUMBER)) {
                     ans[i][j] =0;
 
                 }else {
@@ -185,6 +168,7 @@ public class Ex2Sheet implements Sheet {
                     name="";
                     name= String.valueOf(numToChar(x)+String.valueOf(y));
                     if(ans[x][y]!=0) {
+                        list.clear();
                         if (canBeComputedNow(name, list, value(x, y))) {
                             ans[x][y] = depth;
                             count++;
