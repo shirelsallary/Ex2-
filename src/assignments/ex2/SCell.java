@@ -80,10 +80,11 @@ public class SCell implements Cell {
                 type = Ex2Utils.TEXT;
             else if (isNumber(line)) {
                 type = Ex2Utils.NUMBER;
-            } else if (isForm(line))
+            } else if (isForm(line)) {
                 type = Ex2Utils.FORM;
-            else
+            }else {
                 type = Ex2Utils.ERR_FORM_FORMAT;
+            }
         }
 
     }

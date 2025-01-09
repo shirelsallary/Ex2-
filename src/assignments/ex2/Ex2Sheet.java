@@ -146,27 +146,27 @@ public class Ex2Sheet implements Sheet {
         for (int i = 0; i < width(); i++) {
             for (int j = 0; j < height(); j++) {
                 if((table[i][j].getType()==Ex2Utils.TEXT)||(table[i][j].getType()==Ex2Utils.NUMBER)) {
-                    ans[i][j] =0;
-
+                    ans[i][j] = 0;
                 }else {
                     ans[i][j] = -1;
                 }
             }
         }
 
-        int depth = 0;
+        int depth = 1;  // Start from depth 1 since 0 is for direct values
         int count = 0;
         int max = width() * height();
         boolean flagC = true;
-        String name="";
+        String name;
         List<String> list = new ArrayList<>();
+
         while (count < max && flagC) {
             flagC = false;
             for (int x = 0; x < width(); x++) {
                 for (int y = 0; y < height(); y++) {
-                    name="";
-                    name= String.valueOf(numToChar(x)+String.valueOf(y));
-                    if(ans[x][y]!=0) {
+                    // Only process cells that haven't been assigned a depth yet
+                    if (ans[x][y] == -1) {
+                        name = String.valueOf(numToChar(x)+String.valueOf(y));
                         list.clear();
                         if (canBeComputedNow(name, list, value(x, y))) {
                             ans[x][y] = depth;
@@ -182,7 +182,51 @@ public class Ex2Sheet implements Sheet {
         return ans;
     }
 
+//    @Override
+//    public int[][] depth() {
+//        int[][] ans = new int[width()][height()];
+//        //initiate all the places with -1
+//        for (int i = 0; i < width(); i++) {
+//            for (int j = 0; j < height(); j++) {
+//                if((table[i][j].getType()==Ex2Utils.TEXT)||(table[i][j].getType()==Ex2Utils.NUMBER)) {
+//                    ans[i][j] =0;
+//
+//                }else {
+//                    ans[i][j] = -1;
+//                }
+//            }
+//        }
+//
+//        int depth = 0;
+//        int count = 0;
+//        int max = width() * height();
+//        boolean flagC = true;
+//        String name="";
+//        List<String> list = new ArrayList<>();
+//        while (count < max && flagC) {
+//            flagC = false;
+//            for (int x = 0; x < width(); x++) {
+//                for (int y = 0; y < height(); y++) {
+//                    name="";
+//                    name= String.valueOf(numToChar(x)+String.valueOf(y));
+//                     {
+//                        list.clear();
+//                        if (canBeComputedNow(name, list, value(x, y))) {
+//                            ans[x][y] = depth;
+//                            count++;
+//                            flagC = true;
+//                        }
+//                    }
+//                }
+//            }
+//            depth++;
+//        }
+//
+//        return ans;
+//    }
+
     public boolean canBeComputedNow(String name, List<String> cord, String format) {
+
         // Check for empty format
         if (format == null || format.trim().isEmpty()) {
             return false;
@@ -190,7 +234,6 @@ public class Ex2Sheet implements Sheet {
 
         // If it's text, set error type and return false
         if (isTextS(format)) {
-            setCellType(name, -2);
             return false;
         }
 
@@ -218,13 +261,23 @@ public class Ex2Sheet implements Sheet {
             return false;
         }
 
-        // Check for circular dependencies
-        for (String str1 : cord) {
+
+        // Check for circular dependencies using traditional for loop
+        for (int i = 0; i < cord.size(); i++) {
+            String str1 = cord.get(i); // Access element at index 'i'
             if (dependCells.contains(str1)) {
                 setCellType(name, -1);
                 return false;
             }
         }
+//        // Check for circular dependencies
+//        for (String str1 : cord) {
+//            if (dependCells.contains(str1)) {
+//                setCellType(name, -1);
+//                return false;
+//            }
+//
+//        }
 
         // Recursively check all dependent cells
         cord.addAll(dependCells);
@@ -247,9 +300,10 @@ public class Ex2Sheet implements Sheet {
 
             String neform = table[x][y].getData();
             List<String> newCord = new ArrayList<>(cord);
-            if (!canBeComputedNow(element, newCord, neform)) {
+            if (!canBeComputedNow(element, newCord, neform)) {//מוסיפה איבר למערך
                 return false;
             }
+            //למחוק את התא
         }
 
         return true;
