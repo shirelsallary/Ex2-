@@ -7,18 +7,20 @@ public class SCell implements Cell {
     private CellEntry cordinata;
 
     public SCell(String s) {
-        setData(s);
+        this.line = s.trim();  // Store the original string
         setType();
     }
 
     public SCell(String s, int x, int y) {
-        line = s;
+        this.line = s.trim();  // Store the original string
         this.cordinata = new CellEntry(x, y);
         setType();
     }
-
-    public SCell() {
-    }
+//    public SCell() {
+//        this.line = "";
+//        this.cordinata = new CellEntry();
+//        setType();
+//    }
 
     @Override
     public int getOrder() {
@@ -28,35 +30,36 @@ public class SCell implements Cell {
         // ///////////////////
     }
 
-    //@Override
     @Override
     public String toString() {
-        return getData();
+        return getData();  // Return the original string
     }
 
     @Override
     public void setData(String s) {
-        line = s.trim(); // Trim input string
+        this.line = s.trim();  // Always store the original string
+
         if (isNumber(s)) {
             setType(Ex2Utils.NUMBER);
         } else if (isText(s)) {
             setType(Ex2Utils.TEXT);
         } else if (s.startsWith("=")) {
+            // Don't overwrite the original formula string
             String formulaResult = String.valueOf(computeForm(s));
             if (formulaResult.equals(Ex2Utils.ERR_FORM)) {
                 setType(Ex2Utils.ERR_FORM_FORMAT);
             } else {
                 setType(Ex2Utils.FORM);
             }
-            line = formulaResult;
         } else {
             setType(Ex2Utils.TEXT);
         }
     }
 
+
     @Override
     public String getData() {
-        return line;
+        return line;  // Return the original string
     }
 
     @Override
@@ -77,18 +80,15 @@ public class SCell implements Cell {
 
     public void setType() {
 
-
     }
 
-    private int whichtype() {
-        if ((isNumber(line)))
-            return 2;
-        if (isText(line))
-            return 1;
-        if (isForm(line))
-            return 3;
-        return -1;
+    public void setText(String s) {
+        line = s;
     }
+    public String getText() {
+        return line;
+    }
+
 
     public boolean isNumber(String num) {
         boolean ans;        // Try parsing the string to  double
