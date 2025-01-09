@@ -83,7 +83,7 @@ public class SCell implements Cell {
             } else if (isForm(line))
                 type = Ex2Utils.FORM;
             else
-                type = Ex2Utils.TEXT;
+                type = Ex2Utils.ERR_FORM_FORMAT;
         }
 
     }
@@ -119,6 +119,8 @@ public class SCell implements Cell {
         }
         return false;
     }
+
+
 
     public boolean isForm(String str) {
         // 1. Basic validation

@@ -92,7 +92,7 @@ public class TestSheet
     @Test
     public void testdepth()
     {
-        Ex2Sheet sheet=new Ex2Sheet(5,5);
+        Ex2Sheet sheet=new Ex2Sheet(4,4);
         sheet.set(0,0,"3");
         sheet.set(0,1,"=A0+A0");
         SCell s=sheet.get(0,1);
@@ -111,6 +111,26 @@ public class TestSheet
         sheet.set(3,1,"=C0+3+5");
         sheet.set(3,2,"=C0+5");
         sheet.set(3,3,"=ou+8");
+
+         System.out.println("sheet data"+"/n");
+        for(int i=0; i<4;i++)
+        {
+            for (int j=0; j<4;j++)
+            {  System.out.print(sheet.get(j,i).getData()+" ");}
+            System.out.println();
+        }
+        System.out.println("sheet type before depth"+"/n");
+
+        for(int i=0; i<4;i++)
+        {
+            for (int j=0; j<4;j++)
+            {  System.out.print(sheet.get(j,i).getType()+" ");}
+            System.out.println();
+        }
+
+
+        System.out.println("depth"+"/n");
+
         int [][]d=sheet.depth();
         for(int i=0; i<d.length;i++)
         {
@@ -120,6 +140,21 @@ public class TestSheet
             }
             System.out.println();
         }
+
+        System.out.println("sheet type after depth"+"/n");
+
+        for(int i=0; i<4;i++)
+        {
+            for (int j=0; j<4;j++)
+            {  System.out.print(sheet.get(j,i).getType()+" ");}
+            System.out.println();
+        }
+
+
+//1 -2 -1 -1
+//3  3  -1 -1
+//3  -1  -1 -1
+//1   -2  -1 -2
 
     }
 }

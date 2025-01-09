@@ -151,7 +151,6 @@ public class Ex2Sheet implements Sheet {
                 }else {
                     ans[i][j] = -1;
                 }
-                ans[i][j] = -1;
             }
         }
 
