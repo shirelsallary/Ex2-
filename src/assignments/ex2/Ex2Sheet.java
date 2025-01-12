@@ -8,6 +8,62 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 // Add your documentation below:
 
+//Class Ex2Sheet:
+//    Attributes:
+//        - cells: 2D Array of Cell  // Represents the spreadsheet as a grid of cells
+//
+//    Constructor Ex2Sheet(rows: Integer, cols: Integer):
+//        - cells = new 2D array of Cell with dimensions rows x cols
+//        - Initialize each cell in the grid as a new SCell with empty content
+//
+//    Method getCell(x: Integer, y: Integer) -> Cell:
+//        // Returns the cell at position (x, y)
+//        return cells[x][y]
+//
+//    Method setCell(x: Integer, y: Integer, cell: Cell):
+//        // Sets the cell at position (x, y) to the given cell
+//        cells[x][y] = cell
+//
+//    Method getData(x: Integer, y: Integer) -> String:
+//        // Returns the data (content) of the cell at position (x, y)
+//        return cells[x][y].getData()
+//
+//    Method setData(x: Integer, y: Integer, data: String):
+//        // Sets the data (content) of the cell at position (x, y)
+//        cells[x][y].setData(data)
+//
+//    Method evaluateFormula(x: Integer, y: Integer) -> Double:
+//        // Evaluates the formula in the cell at position (x, y) if it contains a formula
+//        if cells[x][y].getType() == FORM:
+//            return computeForm(cells[x][y].getData())
+//        else:
+//            // Return 0 if it's not a formula or there's an error
+//            return 0.0
+//
+//    Method computeForm(form: String) -> Double:
+//        // Computes a formula in the form of a string
+//        if form starts with "=":
+//            - Remove "=" from the formula
+//        if formula contains cell references (e.g., A1, B2):
+//            - Resolve the cell references to their actual values using getData or evaluateFormula
+//        if form contains operations (e.g., "+", "-", "*", "/"):
+//            - Split the formula by operators and evaluate each part recursively
+//        Return the final computed result
+//
+//    Method displaySheet():
+//        // Displays the current state of the entire sheet
+//        for each row in cells:
+//            for each cell in row:
+//                Print cell.getData()
+//
+//    Method validateCoordinates(x: Integer, y: Integer) -> Boolean:
+//        // Checks if the coordinates (x, y) are valid within the bounds of the sheet
+//        if x >= 0 and x < rows and y >= 0 and y < cols:
+//            return true
+//        else:
+//            return false
+
+
 public class Ex2Sheet implements Sheet {
     private SCell[][] table;
     private int width;
@@ -64,11 +120,7 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public SCell get(String cords) {
-        SCell ans = null;
-        // Add your code here
-
-        /////////////////////
-        return ans;
+        return get(cords.charAt(0)-'A', Integer.parseInt(cords.substring(1)));
     }
 
     @Override
@@ -89,18 +141,36 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public void eval() {
-//        int[][] dd = depth();
-//        for(int i=0;i<width*height;i=i+1) {
-//            for(int x=0;x<height;x=x+1) {
-//                for (int y=0;y<height;y=y+1) {
-//                    if(dd[x][y]==i)
-//                    {
-//                      eval(x,y);
-//                    }
-//                }
-//            }
-//
-//        }
+        int[][] dd = depth(); // Ensure depth is computed with the current sheet
+        for (int x = 0; x < width(); x++) {
+            for (int y = 0; y < height(); y++) {
+                Cell cell = get(x, y);
+                if (cell != null && cell.getType() == Ex2Utils.FORM) { // If the cell contains a formula
+                    if (cell instanceof SCell sCell) {
+                        String formula = sCell.getData();
+
+                        // Check if the formula has already been evaluated and its value is valid
+                        if (!formula.startsWith("=") && !formula.equals(Ex2Utils.ERR_FORM)) {
+                            // Skip re-evaluating the formula and updating the cell's value
+                            continue;
+                        }
+                        // Evaluate the formula and update the cell's value
+                        String computedValue = String.valueOf(computeForm(formula));
+                        if (computedValue.equals(Ex2Utils.ERR_FORM)) {
+                            // Set the cell data to "ERROR_FORM" and type to ERR_FORM_FORMAT
+                            cell.setData(Ex2Utils.ERR_FORM);
+                            cell.setType(Ex2Utils.ERR_FORM_FORMAT);
+                        } else {
+                            // Otherwise, update the cell with the computed value
+                            cell.setData(computedValue);
+                            cell.setType(Ex2Utils.FORM);  // Set the type to FORM after evaluation
+                        }
+                    }
+
+                }
+            }
+
+        }
     }
 //    public String SendTosuitableComute(int x, int y) {
 //        String cor=numToChar(x)+"y";
@@ -149,41 +219,25 @@ public class Ex2Sheet implements Sheet {
     }
 
 
-    @Override
     public String eval(int x, int y) {
-        try {
-            SCell currentCell = this.table[x][y];
-            String currentText = currentCell.getText();
+        String ans = null;
+        // Check if the cell exists at the specified coordinates
+        if (get(x, y) != null) {
+            Cell cell = get(x, y);
 
-            // Handle number
-            if (currentCell.isNumber(currentText)) {
-                return currentText;
-            }
-
-            // Handle plain text
-            if (currentCell.isText(currentText)) {
-                return currentText;
-            }
-
-            // Handle formulas
-            if (currentText.startsWith("=")) {
-                String formula = currentText.substring(1); // Remove '='
-                formula = resolveCellReferences(formula); // Resolve any cell references
-                if (formula.equals("Err_Form")) {
-                    return "Err_Form"; // Invalid reference
+            // If the cell has a formula, evaluate it
+            if (cell.getType() == Ex2Utils.FORM) {
+                if (cell instanceof SCell) {
+                    ans = String.valueOf(((SCell) cell).computeForm(cell.toString()));
                 }
-                try {
-                    return String.valueOf(currentCell.computeForm(formula)); // Compute the formula
-                } catch (Exception e) {
-                    return "Err_Form"; // Error in computation
-                }
+            } else {
+                // If the cell does not have a formula, just return its value
+                ans = cell.toString();
             }
-
-            return "Err_Form"; // Invalid cell content
-        } catch (Exception e) {
-            return "Err_Form"; // General error
         }
+        return ans;
     }
+
 
     public String value(String n)
     {
@@ -246,134 +300,7 @@ public class Ex2Sheet implements Sheet {
 
 
 
-//    @Override
-//    public int[][] depth() {
-//        int[][] ans = new int[width()][height()];
-//        //initiate all the places with -1
-//        for (int i = 0; i < width(); i++) {
-//            for (int j = 0; j < height(); j++) {
-//                if((table[i][j].getType()==Ex2Utils.TEXT)||(table[i][j].getType()==Ex2Utils.NUMBER)) {
-//                    ans[i][j] =0;
-//
-//                }else {
-//                    ans[i][j] = -1;
-//                }
-//            }
-//        }
-//
-//        int depth = 0;
-//        int count = 0;
-//        int max = width() * height();
-//        boolean flagC = true;
-//        String name="";
-//        List<String> list = new ArrayList<>();
-//        while (count < max && flagC) {
-//            flagC = false;
-//            for (int x = 0; x < width(); x++) {
-//                for (int y = 0; y < height(); y++) {
-//                    name="";
-//                    name= String.valueOf(numToChar(x)+String.valueOf(y));
-//                     {
-//                        list.clear();
-//                        if (canBeComputedNow(name, list, value(x, y))) {
-//                            ans[x][y] = depth;
-//                            count++;
-//                            flagC = true;
-//                        }
-//                    }
-//                }
-//            }
-//            depth++;
-//        }
-//
-//        return ans;
-//    }
 
-//    public boolean canBeComputedNow(String name, List<String> cord, String format) {
-//
-//        // Check for empty format
-//        if (format == null || format.trim().isEmpty()) {
-//            return false;
-//        }
-////חסר שינוי של הטייפ
-//        // If it's text, set error type and return false
-//        if (isTextS(format)) {
-//            return true;
-//        }
-//
-//        // If it's a number, it can be computed
-//        if (isNumberS(format)) {
-//            return true;
-//        }
-//
-//        // If it's not a formula, it cannot be computed
-//        if (!isFormS(format)) {
-//            return false;
-//        }
-//
-//        // If formula contains no cell references, it can be computed
-//        if (!containsLetters(format)) {
-//            return true;
-//        }
-//
-//        // Get dependent cells
-//        List<String> dependCells = extractCoordinates(format);
-//
-//
-//        // Check for self-reference
-//        if (dependCells.contains(name)) {
-//            setCellType(name, -1);
-//            return false;
-//        }
-//
-//
-//        // Check for circular dependencies using traditional for loop
-//        for (int i = 0; i < cord.size(); i++) {
-//            String str1 = cord.get(i); // Access element at index 'i'
-//            if (dependCells.contains(str1)) {
-//                setCellType(name, -1);
-//                return false;
-//            }
-//        }
-//        // Check for circular dependencies
-//        for (String str1 : cord) {
-//            if (dependCells.contains(str1)) {
-//                setCellType(name, -1);
-//                return false;
-//            }
-//
-//
-//        }
-//
-//        // Recursively check all dependent cells
-//        cord.addAll(dependCells);
-//        for (String element : dependCells) {
-//            int x = element.charAt(0) - 'A';
-//            int y;
-//
-//            if (element.length() == 2) {
-//                y = Character.getNumericValue(element.charAt(1));
-//            } else if (element.length() == 3) {
-//                y = Integer.parseInt(element.substring(1));
-//            } else {
-//                return false; // Invalid cell reference format
-//            }
-//
-//            // Check if coordinates are within table bounds
-//            if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
-//                return false;
-//            }
-//
-//            String neform = table[x][y].getData();
-//            List<String> newCord = new ArrayList<>(cord);
-//            if (!canBeComputedNow(element, newCord, neform)) {//מוסיפה איבר למערך
-//                return false;
-//            }
-//            //למחוק את התא
-//        }
-//
-//        return true;
-//    }
 
 
 
@@ -746,8 +673,11 @@ public String getLineFromScell(String element)
             return result1 * result2;
         }
 
-
-        return Double.parseDouble(form);
+         try{
+        return Double.parseDouble(form);}
+         catch(NumberFormatException e){
+             return Double.parseDouble((get(form).getData()));
+         }
 
     }
 
@@ -795,186 +725,4 @@ public String getLineFromScell(String element)
 
 
 
-//    private boolean isCellReference(String text) {
-//        if (text.length() < 2) return false;
-//
-//        // First character should be a letter (case insensitive)
-//        char firstChar = Character.toUpperCase(text.charAt(0));
-//        if (firstChar < 'A' || firstChar > 'Z') return false;
-//
-//        // Rest should be a valid number
-//        String numberPart = text.substring(1).toUpperCase(); // Convert the rest to uppercase in case it contains letters
-//        try {
-//            int number = Integer.parseInt(numberPart);
-//            return number >= 0;  // Ensure it's a non-negative number
-//        } catch (NumberFormatException e) {
-//            return false;
-//        }
-//    }
 
-//    private boolean isCellReference(String text) {
-//        if (text.length() < 2) return false;
-//
-//        // First character should be a letter (case insensitive)
-//        char firstChar = Character.toUpperCase(text.charAt(0));
-//        if (firstChar < 'A' || firstChar > 'Z') return false;
-//
-//        // Rest should be a valid number
-//        String numberPart = text.substring(1);
-//        try {
-//            int number = Integer.parseInt(numberPart);
-//            return number >= 0;  // Ensure it's a non-negative number
-//        } catch (NumberFormatException e) {
-//            return false;
-//        }
-//    }
-
-//
-//    public boolean isFormS(String str) {
-//        // 1. Basic validation
-//        if (str == null || !str.startsWith("=")) return false;
-//
-//        String text = str.substring(1);  // Remove '='
-//        if (text.isEmpty()) return false;
-//
-//        // Special case: if it's just a number after '='
-//        try {
-//            Double.parseDouble(text);
-//            return true;  // Valid if it's just a number
-//        } catch (NumberFormatException e) {
-//            // Continue checking if it's not just a simple number
-//        }
-//
-//        // 2. Check parentheses balance and validity
-//        int bracketCount = 0;
-//        for (char c : text.toCharArray()) {
-//            if (c == '(') bracketCount++;
-//            if (c == ')') bracketCount--;
-//            if (bracketCount < 0) return false;
-//        }
-//        if (bracketCount != 0) return false;
-//
-//        // 3. Check each character and operation
-//        boolean expectingNumber = true;  // true if we expect a number/letter, false if we expect an operator
-//        for (int i = 0; i < text.length(); i++) {
-//            char c = text.charAt(i);
-//
-//            if (c == ' ') continue;  // Skip spaces
-//
-//            if (c == '(') {
-//                if (!expectingNumber) return false;
-//                continue;
-//            }
-//
-//            if (c == ')') {
-//                if (expectingNumber) return false;
-//                expectingNumber = false;
-//                continue;
-//            }
-//
-//            if ("+-*/".indexOf(c) != -1) {  // Is operator
-//                if (expectingNumber) return false;
-//                expectingNumber = true;
-//                continue;
-//            }
-//
-//            if (Character.isDigit(c) || Character.isLetter(c) || c == '.') {
-//                if (!expectingNumber) return false;
-//                // Handle decimal numbers or cell references
-//                boolean hasDecimal = false;
-//                while (i < text.length() &&
-//                        (Character.isDigit(text.charAt(i)) ||
-//                                Character.isLetter(text.charAt(i)) ||
-//                                text.charAt(i) == '.')) {
-//                    if (text.charAt(i) == '.') {
-//                        if (hasDecimal) return false;  // Can't have two decimals
-//                        hasDecimal = true;
-//                    }
-//                    i++;
-//                }
-//                i--;  // Adjust for the loop increment
-//                expectingNumber = false;
-//                continue;
-//            }
-//
-//            return false;  // Invalid character
-//        }
-//
-//        return !expectingNumber;  // Should not end expecting a number
-//    }
-
-//public boolean getCanBeComputedNow(String element)
-//{
-//    List<String> l=new ArrayList<>();
-//    int x=element.charAt(0)-'A';
-//    int y=0;
-//    if(element.length()==2){
-//        y=element.charAt(1);
-//    }
-//    else if (element.length()==3){
-//        y= Integer.parseInt(element.substring(1));
-//    }
-//
-//    return canBeComputedNow(element,l,table[x][y].getData());
-//
-//}
-
-//
-//   public boolean canBeComputedNow (String name, List<String> cord, String format) {
-//
-//       if (format ==" ")
-//       {
-//           return false;
-//       }
-//
-//        if(isTextS(format))
-//        {
-//            setCellType(name,-2);//set type for an error form
-//            return false;
-//        }
-//        //canot be compute
-//        if(isNumberS(format)) {return true;}
-//        if (!isFormS(format)) {return false;}
-//        if (!containsLetters(format)) {return true;}//valid format
-//        List<String> pointer1=cord;//exist list pointer
-//        List<String> dependCells=extractCoordinates(format);//the list of the cells that the current cell(index=name) are depend on
-//        List<String> pointer2=dependCells;//his pointer
-//            for (String str1 : pointer1) {//str1 takes on the value of each element in pointer1 one by one.
-//                if (pointer2.contains(str1))//if it cycles
-//                {
-//                    setCellType(name,-1);// set for an error cycle
-//                    return false;
-//                }
-//                if (pointer2.contains(name)) {//if it contains himself
-//                    setCellType(name,-1);
-//                    return false;
-//                }
-//            }
-//            pointer2=dependCells;
-//            cord.addAll(dependCells);
-//            for(int i=0; i<dependCells.size(); i++)
-//            {
-//                String element = pointer2.get(i);
-//                int x=element.charAt(0)-'A';
-//                int y=0;
-//               if(element.length()==2){
-//                    y=Integer.parseInt(String.valueOf(element.charAt(1)));
-//                }
-//                 else if (element.length()==3){
-//                    y= Integer.parseInt(element.substring(1));
-//                }
-//                String neform=table[x][y].getData();
-//                List<String> newCord = new ArrayList<>(cord); // Create a copy of cord
-//                newCord.add(pointer2.get(i)); // Add the new element to the copy
-//                canBeComputedNow(element, newCord,neform);
-//            }
-//            return true;
-//    }
-//    private boolean containsLetters(String s) {
-//        for(int i=0;i<s.length();i++) {
-//            char c = s.charAt(i);
-//            if(Character.isLetter(c)) {return true;}
-//        }
-//        return false;
-//    }
-// Function to extract coordinates from a string

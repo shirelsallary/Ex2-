@@ -1,5 +1,107 @@
 package assignments.ex2;
-// Add your documentation below:
+
+
+//Class SCell:
+//    Attributes:
+//        - line: String  // Stores the original data or formula of the cell
+//        - type: Integer // Stores the type of the cell (e.g., number, text, formula)
+//        - cordinata: CellEntry // Stores the coordinates of the cell
+//
+//    Constructor SCell(s: String):
+//        - line = trim(s)
+//        - setType()
+//
+//    Constructor SCell(s: String, x: Integer, y: Integer):
+//        - line = trim(s)
+//        - cordinata = new CellEntry(x, y)
+//        - setType()
+//
+//    Method getOrder() -> Integer:
+//        // Return the order of the cell (Not implemented)
+//        return 0
+//
+//    Method toString() -> String:
+//        return getData()
+//
+//    Method setData(s: String):
+//        - line = trim(s)
+//        - if s is a number:
+//            setType(NUMBER)
+//        - else if s is text:
+//            setType(TEXT)
+//        - else if s starts with "=" (formula):
+//            - if formula is valid:
+//                setType(FORM)
+//            - else:
+//                setType(ERR_FORM_FORMAT)
+//
+//    Method getData() -> String:
+//        return line
+//
+//    Method getType() -> Integer:
+//        return type
+//
+//    Method setOrder(t: Integer):
+//        // Set the order of the cell (Not implemented)
+//
+//    Method setType(t: Integer):
+//        type = t
+//
+//    Method setType():
+//        if line is not empty:
+//            if line is text:
+//                type = TEXT
+//            else if line is number:
+//                type = NUMBER
+//            else if line is a valid formula:
+//                type = FORM
+//            else:
+//                type = ERR_FORM_FORMAT
+//
+//    Method setText(s: String):
+//        line = s
+//
+//    Method getText() -> String:
+//        return line
+//
+//    Method getIsCordinataIsValid(x: Integer, y: Integer) -> Boolean:
+//        return cordinata.isValid()
+//
+//    Method isNumber(num: String) -> Boolean:
+//        try:
+//            - if num can be parsed to a double:
+//                return true
+//        catch NumberFormatException:
+//            return false
+//
+//    Method isText(text: String) -> Boolean:
+//        if text is not a number and text does not start with "=":
+//            return true
+//        return false
+//
+//    Method isForm(str: String) -> Boolean:
+//        if str starts with "=":
+//            - Remove "=" from the beginning
+//            - Check if the formula has balanced parentheses
+//            - Check if the formula contains valid characters (numbers, operators, cell references)
+//            return true if all checks pass
+//        return false
+//
+//    Method allowedSign(sign: Character) -> Boolean:
+//        return true if sign is one of '+', '-', '*', '/', or a valid character (like a letter)
+//
+//    Method computeForm(form: String) -> Double:
+//        if form starts with "=":
+//            - Remove "=" from the formula
+//        if formula contains parentheses:
+//            - Find matching parentheses and compute the expression inside recursively
+//        if form contains an operation (e.g., "+", "-", "*", "/"):
+//            - Split the formula at the operator and compute left and right sides recursively
+//            return the result of the operation
+//        if form is a number:
+//            return the number as a double
+//        return result of the computed expression
+
 
 public class SCell implements Cell {
     private String line;
