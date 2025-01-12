@@ -289,8 +289,95 @@ public class Ex2Sheet implements Sheet {
 //        return ans;
 //    }
 
-    public boolean canBeComputedNow(String name, List<String> cord, String format) {
+//    public boolean canBeComputedNow(String name, List<String> cord, String format) {
+//
+//        // Check for empty format
+//        if (format == null || format.trim().isEmpty()) {
+//            return false;
+//        }
+////חסר שינוי של הטייפ
+//        // If it's text, set error type and return false
+//        if (isTextS(format)) {
+//            return true;
+//        }
+//
+//        // If it's a number, it can be computed
+//        if (isNumberS(format)) {
+//            return true;
+//        }
+//
+//        // If it's not a formula, it cannot be computed
+//        if (!isFormS(format)) {
+//            return false;
+//        }
+//
+//        // If formula contains no cell references, it can be computed
+//        if (!containsLetters(format)) {
+//            return true;
+//        }
+//
+//        // Get dependent cells
+//        List<String> dependCells = extractCoordinates(format);
+//
+//
+//        // Check for self-reference
+//        if (dependCells.contains(name)) {
+//            setCellType(name, -1);
+//            return false;
+//        }
+//
+//
+//        // Check for circular dependencies using traditional for loop
+//        for (int i = 0; i < cord.size(); i++) {
+//            String str1 = cord.get(i); // Access element at index 'i'
+//            if (dependCells.contains(str1)) {
+//                setCellType(name, -1);
+//                return false;
+//            }
+//        }
+//        // Check for circular dependencies
+//        for (String str1 : cord) {
+//            if (dependCells.contains(str1)) {
+//                setCellType(name, -1);
+//                return false;
+//            }
+//
+//
+//        }
+//
+//        // Recursively check all dependent cells
+//        cord.addAll(dependCells);
+//        for (String element : dependCells) {
+//            int x = element.charAt(0) - 'A';
+//            int y;
+//
+//            if (element.length() == 2) {
+//                y = Character.getNumericValue(element.charAt(1));
+//            } else if (element.length() == 3) {
+//                y = Integer.parseInt(element.substring(1));
+//            } else {
+//                return false; // Invalid cell reference format
+//            }
+//
+//            // Check if coordinates are within table bounds
+//            if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
+//                return false;
+//            }
+//
+//            String neform = table[x][y].getData();
+//            List<String> newCord = new ArrayList<>(cord);
+//            if (!canBeComputedNow(element, newCord, neform)) {//מוסיפה איבר למערך
+//                return false;
+//            }
+//            //למחוק את התא
+//        }
+//
+//        return true;
+//    }
 
+
+
+    public boolean canBeComputedNow(String name, List<String> cord, String format) {
         // Check for empty format
         if (format == null || format.trim().isEmpty()) {
             return false;
@@ -298,7 +385,7 @@ public class Ex2Sheet implements Sheet {
 
         // If it's text, set error type and return false
         if (isTextS(format)) {
-            return false;
+            return true;
         }
 
         // If it's a number, it can be computed
@@ -325,27 +412,34 @@ public class Ex2Sheet implements Sheet {
             return false;
         }
 
+        // Check for circular dependencies and invalid cell types
+        for (String dependCell : dependCells) {
+            // First, check if the dependent cell exists and has a valid type
+            Cell cell = get(dependCell);
+            if (cell == null) {
+                setCellType(name, -2);  // Invalid reference
+                return false;
+            }
 
-        // Check for circular dependencies using traditional for loop
-        for (int i = 0; i < cord.size(); i++) {
-            String str1 = cord.get(i); // Access element at index 'i'
-            if (dependCells.contains(str1)) {
+            // Check if any dependent cell has type -1 or -2
+            if (cell.getType() == -1 || cell.getType() == -2) {
+                setCellType(name, -1);  // Propagate the error
+                return false;
+            }
+
+            // Check for circular dependencies
+            if (cord.contains(dependCell)) {
                 setCellType(name, -1);
                 return false;
             }
         }
-        // Check for circular dependencies
-        for (String str1 : cord) {
-            if (dependCells.contains(str1)) {
-                setCellType(name, -1);
-                return false;
-            }
 
-        }
+        // Add current dependencies to cord list
+        cord.addAll(dependCells);
 
         // Recursively check all dependent cells
-        cord.addAll(dependCells);
         for (String element : dependCells) {
+            // Parse cell coordinates
             int x = element.charAt(0) - 'A';
             int y;
 
@@ -354,24 +448,30 @@ public class Ex2Sheet implements Sheet {
             } else if (element.length() == 3) {
                 y = Integer.parseInt(element.substring(1));
             } else {
-                return false; // Invalid cell reference format
+                setCellType(name, -2);  // Invalid cell reference format
+                return false;
             }
 
             // Check if coordinates are within table bounds
             if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
+                setCellType(name, -2);  // Out of bounds
                 return false;
             }
 
             String neform = table[x][y].getData();
             List<String> newCord = new ArrayList<>(cord);
-            if (!canBeComputedNow(element, newCord, neform)) {//מוסיפה איבר למערך
+
+            // Recursive check
+            if (!canBeComputedNow(element, newCord, neform)) {
+                // If a dependent cell can't be computed, propagate the error
+                setCellType(name, get(element).getType());
                 return false;
             }
-            //למחוק את התא
         }
 
         return true;
     }
+
 
     private boolean containsLetters(String s) {
         for (char c : s.toCharArray()) {
