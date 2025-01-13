@@ -1,9 +1,6 @@
 package assignments.ex2;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 // Add your documentation below:
@@ -141,18 +138,29 @@ public class Ex2Sheet implements Sheet {
     @Override
     public void eval() {
         int[][] dd = depth();// Ensure depth is computed with the current sheet
+
         for(int i=0;i<width()*height;i++) {
 
             for (int x = 0; x < width(); x++) {
                 for (int y = 0; y < height(); y++) {
                     if(dd[x][y]==i)
                     {
-                        eval(x,y);
+                        System.out.print(eval(x,y)+" ");
                     }
+                    else if(Objects.equals(table[x][y].getData(), Ex2Utils.EMPTY_CELL))
+                    {System.out.print(Ex2Utils.EMPTY_CELL);}
+                    else if(dd[x][y]==-1)
+                    {
+                        System.out.print(Ex2Utils.ERR);
+                    }
+                   else if(dd[x][y]==-2)
+                    {System.out.print(Ex2Utils.ERR_FORM);}
+
 
                 }
 
             }
+            System.out.println(" ");
         }
 
     }
@@ -204,8 +212,9 @@ public class Ex2Sheet implements Sheet {
 
 
     public String eval(int x, int y) {
+        depth();
 
-        if(get(x,y).getType()==Ex2Utils.FORM) {
+        if(get(x,y).isForm(get(x,y).getData())&& get(x,y).getType()==Ex2Utils.FORM) {
             return String.valueOf(computeForm(get(x,y).getData()));
         }
         if(get(x,y).getType()==Ex2Utils.NUMBER||get(x,y).getType()==Ex2Utils.TEXT)
@@ -317,15 +326,117 @@ public class Ex2Sheet implements Sheet {
 
 
 
+//    public boolean canBeComputedNow(String name, List<String> cord, String format) {
+//        // Check for empty format
+//        if (format == null || format.trim().isEmpty()) {
+//            return false;
+//        }
+//
+//        // If it's text, set error type and return false
+//        if (isTextS(format)&& !cord.isEmpty()) {
+//            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
+//            return false;
+//        }
+//
+//        // If it's a number, it can be computed
+//        if (isNumberS(format)) {
+//            return true;
+//        }
+//
+//        // If it's not a formula, it cannot be computed
+//        if (!isFormS(format)) {
+//            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
+//            return false;
+//        }
+//
+//        // If formula contains no cell references, it can be computed
+//        if (!containsLetters(format)) {
+//            return true;
+//        }
+//
+//        // Get dependent cells
+//        List<String> dependCells = extractCoordinates(format);
+//
+//        // Check for self-reference
+//        if (dependCells.contains(name)) {
+//            setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
+//            return false;
+//        }
+//
+//        // Check for circular dependencies and invalid cell types
+//        for (String dependCell : dependCells) {
+//            // First, check if the dependent cell exists and has a valid type
+//            Cell cell = get(dependCell);
+//            if (cell == null) {
+//                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Invalid reference
+//                return false;
+//            }
+//
+//            // Check if any dependent cell has type -1 or -2
+//            if (cell.getType() == Ex2Utils.ERR_FORM_FORMAT || cell.getType() == Ex2Utils.ERR_CYCLE_FORM) {
+//                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Propagate the error
+//                return false;
+//            }
+//
+//            // Check for circular dependencies
+//            if (cord.contains(dependCell)) {
+//                setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
+//                return false;
+//            }
+//        }
+//
+//        // Add current dependencies to cord list
+//        cord.addAll(dependCells);
+//
+//        // Recursively check all dependent cells
+//        for (String element : dependCells) {
+//            // Parse cell coordinates
+//            int x = element.charAt(0) - 'A';
+//            int y;
+//
+//            if (element.length() == 2) {
+//                y = Character.getNumericValue(element.charAt(1));
+//            } else if (element.length() == 3) {
+//                y = Integer.parseInt(element.substring(1));
+//            } else {
+//                setCellType(name, -2);  // Invalid cell reference format
+//                return false;
+//            }
+//
+//            // Check if coordinates are within table bounds
+//            if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
+//                setCellType(name, -2);  // Out of bounds
+//                return false;
+//            }
+//
+//            String neform = table[x][y].getData();
+//            List<String> newCord = new ArrayList<>(cord);
+//
+//            // Recursive check
+//            if (!canBeComputedNow(element, newCord, neform)) {
+//                // If a dependent cell can't be computed, propagate the error
+//                setCellType(name, get(element).getType());
+//                return false;
+//            }
+//        }
+//
+//        return true;
+//    }
+
+
+
+
+
+
     public boolean canBeComputedNow(String name, List<String> cord, String format) {
         // Check for empty format
         if (format == null || format.trim().isEmpty()) {
             return false;
         }
 
+
         // If it's text, set error type and return false
-        if (isTextS(format)&& !cord.isEmpty()) {
-            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
+        if (isTextS(format)) {
             return false;
         }
 
@@ -336,7 +447,6 @@ public class Ex2Sheet implements Sheet {
 
         // If it's not a formula, it cannot be computed
         if (!isFormS(format)) {
-            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
             return false;
         }
 
@@ -354,64 +464,46 @@ public class Ex2Sheet implements Sheet {
             return false;
         }
 
-        // Check for circular dependencies and invalid cell types
-        for (String dependCell : dependCells) {
-            // First, check if the dependent cell exists and has a valid type
-            Cell cell = get(dependCell);
-            if (cell == null) {
-                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Invalid reference
-                return false;
-            }
-
-            // Check if any dependent cell has type -1 or -2
-            if (cell.getType() == Ex2Utils.ERR_FORM_FORMAT || cell.getType() == Ex2Utils.ERR_CYCLE_FORM) {
-                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Propagate the error
-                return false;
-            }
-
-            // Check for circular dependencies
-            if (cord.contains(dependCell)) {
+        // Check for circular dependencies
+        for (String str1 : cord) {
+            if (dependCells.contains(str1)) {
                 setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
                 return false;
             }
         }
 
-        // Add current dependencies to cord list
-        cord.addAll(dependCells);
 
         // Recursively check all dependent cells
+        cord.addAll(dependCells);
         for (String element : dependCells) {
-            // Parse cell coordinates
             int x = element.charAt(0) - 'A';
             int y;
-
             if (element.length() == 2) {
                 y = Character.getNumericValue(element.charAt(1));
             } else if (element.length() == 3) {
                 y = Integer.parseInt(element.substring(1));
             } else {
-                setCellType(name, -2);  // Invalid cell reference format
-                return false;
+                return false; // Invalid cell reference format
             }
 
             // Check if coordinates are within table bounds
             if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
-                setCellType(name, -2);  // Out of bounds
+
                 return false;
             }
 
+
             String neform = table[x][y].getData();
             List<String> newCord = new ArrayList<>(cord);
-
-            // Recursive check
             if (!canBeComputedNow(element, newCord, neform)) {
-                // If a dependent cell can't be computed, propagate the error
-                setCellType(name, get(element).getType());
+                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);
                 return false;
             }
         }
 
         return true;
+
+
     }
 
 
