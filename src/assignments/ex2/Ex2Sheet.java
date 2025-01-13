@@ -92,15 +92,18 @@ public class Ex2Sheet implements Sheet {
     public int setCellType(String cell, int t) {
         int x = cell.charAt(0) - 'A'; // Convert 'A' to 0, 'B' to 1, etc.
         int y = 0;
+        if(isIn(x, y)) {
+            if (cell.length() == 2) {
+                y = cell.charAt(1) - '0'; // Correctly convert '3' to 3
+            } else if (cell.length() == 3) {
+                y = Integer.parseInt(cell.substring(1)); // Handle multi-digit row numbers
+            }
 
-        if (cell.length() == 2) {
-            y = cell.charAt(1) - '0'; // Correctly convert '3' to 3
-        } else if (cell.length() == 3) {
-            y = Integer.parseInt(cell.substring(1)); // Handle multi-digit row numbers
+            table[x][y].setType(t); // Assuming table[x][y] is valid and has a setType method
+            return x;
         }
+return 0;
 
-        table[x][y].setType(t); // Assuming table[x][y] is valid and has a setType method
-        return x;
     }
 
 
@@ -138,31 +141,14 @@ public class Ex2Sheet implements Sheet {
     @Override
     public void eval() {
         int[][] dd = depth();// Ensure depth is computed with the current sheet
-
-        for(int i=0;i<width()*height;i++) {
-
             for (int x = 0; x < width(); x++) {
                 for (int y = 0; y < height(); y++) {
-                    if(dd[x][y]==i)
-                    {
-                        System.out.print(eval(x,y)+" ");
-                    }
-                    else if(Objects.equals(table[x][y].getData(), Ex2Utils.EMPTY_CELL))
-                    {System.out.print(Ex2Utils.EMPTY_CELL);}
-                    else if(dd[x][y]==-1)
-                    {
-                        System.out.print(Ex2Utils.ERR);
-                    }
-                   else if(dd[x][y]==-2)
-                    {System.out.print(Ex2Utils.ERR_FORM);}
 
-
+                    {
+                    System.out.println(eval(x,y));
+                    }
                 }
-
             }
-            System.out.println(" ");
-        }
-
     }
 //    public String SendTosuitableComute(int x, int y) {
 //        String cor=numToChar(x)+"y";
@@ -177,6 +163,20 @@ public class Ex2Sheet implements Sheet {
     public boolean isIn(int xx, int yy) {
         return xx >= 0 && xx < width() && yy >= 0 && yy < height();
     }
+
+
+    public boolean isIn(String cords) {
+        int x = cords.charAt(0) - 'A';
+        try {
+          boolean i=  Character.isDigit(Integer.parseInt(cords.substring(1)));
+          int y= Integer.parseInt(cords.substring(1));
+          return isIn(x,y);
+        }
+        catch(Exception e) {
+            return false;
+        }
+    }
+
 
     // Loads the sheet from a file
     @Override
@@ -212,9 +212,8 @@ public class Ex2Sheet implements Sheet {
 
 
     public String eval(int x, int y) {
-        depth();
-
-        if(get(x,y).isForm(get(x,y).getData())&& get(x,y).getType()==Ex2Utils.FORM) {
+depth();
+        if(get(x,y).getType()==Ex2Utils.FORM) {
             return String.valueOf(computeForm(get(x,y).getData()));
         }
         if(get(x,y).getType()==Ex2Utils.NUMBER||get(x,y).getType()==Ex2Utils.TEXT)
@@ -225,39 +224,6 @@ public class Ex2Sheet implements Sheet {
        {return Ex2Utils.ERR_CYCLE;}
       return null;
 
-
-//        try {
-//            SCell currentCell = this.table[x][y];
-//            String currentText = currentCell.getText();
-//
-//            // Handle number
-//            if (currentCell.isNumber(currentText)) {
-//                return currentText;
-//            }
-//
-//            // Handle plain text
-//            if (currentCell.isText(currentText)) {
-//                return currentText;
-//            }
-//
-//            // Handle formulas
-//            if (currentText.startsWith("=")) {
-//                String formula = currentText.substring(1); // Remove '='
-//                formula = resolveCellReferences(formula); // Resolve any cell references
-//                if (formula.equals("Err_Form")) {
-//                    return "Err_Form"; // Invalid reference
-//                }
-//                try {
-//                    return String.valueOf(computeForm(formula)); // Compute the formula
-//                } catch (Exception e) {
-//                    return "Err_Form"; // Error in computation
-//                }
-//            }
-//
-//            return "Err_Form"; // Invalid cell content
-//        } catch (Exception e) {
-//            return "Err_Form"; // General error
-//        }
    }
 
 
@@ -320,120 +286,11 @@ public class Ex2Sheet implements Sheet {
     }
 
 
-
-
-
-
-
-
-//    public boolean canBeComputedNow(String name, List<String> cord, String format) {
-//        // Check for empty format
-//        if (format == null || format.trim().isEmpty()) {
-//            return false;
-//        }
-//
-//        // If it's text, set error type and return false
-//        if (isTextS(format)&& !cord.isEmpty()) {
-//            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
-//            return false;
-//        }
-//
-//        // If it's a number, it can be computed
-//        if (isNumberS(format)) {
-//            return true;
-//        }
-//
-//        // If it's not a formula, it cannot be computed
-//        if (!isFormS(format)) {
-//            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
-//            return false;
-//        }
-//
-//        // If formula contains no cell references, it can be computed
-//        if (!containsLetters(format)) {
-//            return true;
-//        }
-//
-//        // Get dependent cells
-//        List<String> dependCells = extractCoordinates(format);
-//
-//        // Check for self-reference
-//        if (dependCells.contains(name)) {
-//            setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
-//            return false;
-//        }
-//
-//        // Check for circular dependencies and invalid cell types
-//        for (String dependCell : dependCells) {
-//            // First, check if the dependent cell exists and has a valid type
-//            Cell cell = get(dependCell);
-//            if (cell == null) {
-//                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Invalid reference
-//                return false;
-//            }
-//
-//            // Check if any dependent cell has type -1 or -2
-//            if (cell.getType() == Ex2Utils.ERR_FORM_FORMAT || cell.getType() == Ex2Utils.ERR_CYCLE_FORM) {
-//                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Propagate the error
-//                return false;
-//            }
-//
-//            // Check for circular dependencies
-//            if (cord.contains(dependCell)) {
-//                setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
-//                return false;
-//            }
-//        }
-//
-//        // Add current dependencies to cord list
-//        cord.addAll(dependCells);
-//
-//        // Recursively check all dependent cells
-//        for (String element : dependCells) {
-//            // Parse cell coordinates
-//            int x = element.charAt(0) - 'A';
-//            int y;
-//
-//            if (element.length() == 2) {
-//                y = Character.getNumericValue(element.charAt(1));
-//            } else if (element.length() == 3) {
-//                y = Integer.parseInt(element.substring(1));
-//            } else {
-//                setCellType(name, -2);  // Invalid cell reference format
-//                return false;
-//            }
-//
-//            // Check if coordinates are within table bounds
-//            if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
-//                setCellType(name, -2);  // Out of bounds
-//                return false;
-//            }
-//
-//            String neform = table[x][y].getData();
-//            List<String> newCord = new ArrayList<>(cord);
-//
-//            // Recursive check
-//            if (!canBeComputedNow(element, newCord, neform)) {
-//                // If a dependent cell can't be computed, propagate the error
-//                setCellType(name, get(element).getType());
-//                return false;
-//            }
-//        }
-//
-//        return true;
-//    }
-
-
-
-
-
-
     public boolean canBeComputedNow(String name, List<String> cord, String format) {
         // Check for empty format
         if (format == null || format.trim().isEmpty()) {
             return false;
         }
-
 
         // If it's text, set error type and return false
         if (isTextS(format)) {
@@ -458,6 +315,8 @@ public class Ex2Sheet implements Sheet {
         // Get dependent cells
         List<String> dependCells = extractCoordinates(format);
 
+
+
         // Check for self-reference
         if (dependCells.contains(name)) {
             setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
@@ -471,7 +330,6 @@ public class Ex2Sheet implements Sheet {
                 return false;
             }
         }
-
 
         // Recursively check all dependent cells
         cord.addAll(dependCells);
@@ -487,11 +345,13 @@ public class Ex2Sheet implements Sheet {
             }
 
             // Check if coordinates are within table bounds
-            if (x < 0 || x >= table.length || y < 0 || y >= table[0].length) {
-
+            if (!isIn(x, y)) {
                 return false;
             }
-
+            if(get(x,y).getType()==Ex2Utils.TEXT) {
+                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);
+                return false;
+            }
 
             String neform = table[x][y].getData();
             List<String> newCord = new ArrayList<>(cord);
@@ -733,9 +593,11 @@ public String getLineFromScell(String element)
 
 
     public double computeForm(String form) {
-        if (form.charAt(0) == '=') form = form.substring(1);
 
-        if (form.indexOf("(") != -1) {
+        if(form.charAt(0)=='=') form=form.substring(1);
+
+        if (form.indexOf("(") != -1)
+        {
             int openIndex = form.indexOf("(");
             int temp = 0;
             for (int i = openIndex; i < form.length(); i++) { //Count the brackets
@@ -747,10 +609,10 @@ public String getLineFromScell(String element)
                     temp--;
                     if (temp == 0) {
                         double sograym = computeForm(form.substring(openIndex + 1, i)); //Solve the formula inside the brackets
-                        String first = (form.substring(0, openIndex));
+                        String first= (form.substring(0, openIndex));
                         String second = String.valueOf(form.substring(i + 1, form.length()));
                         form = first + sograym + second; //New string with the new value of brakes
-                        form = String.valueOf(computeForm(form)); //doing it until there is no more brakes
+                        form= String.valueOf(computeForm(form)); //doing it until there is no more brakes
                     }
                 }
             }
@@ -758,35 +620,37 @@ public String getLineFromScell(String element)
         if (form.contains("+")) {//Calculate connection
             int ind1 = form.indexOf("+");
             double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            double result2 = (int) computeForm(form.substring(ind1+1, form.length()));
             return result1 + result2;
         }
         if (form.contains("-")) {//calculate subtraction
             int ind1 = form.indexOf("-");
             double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            double result2 = (int) computeForm(form.substring(ind1+1, form.length()));
             return result1 - result2;
         }
         if (form.contains("/")) { //Calculate division
             int ind1 = form.indexOf("/");
             double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            double result2 = (int) computeForm(form.substring(ind1+1, form.length()));
             return result1 / result2;
         }
         if (form.contains("*")) {//calculate multiplication
             int ind1 = form.indexOf("*");
             double result1 = (int) computeForm(form.substring(0, ind1));
-            double result2 = (int) computeForm(form.substring(ind1 + 1, form.length()));
+            double result2 = (int) computeForm(form.substring(ind1+1, form.length()));
             return result1 * result2;
         }
 
-         try{
+try{
         return Double.parseDouble(form);}
-         catch(NumberFormatException e){
-             return (computeForm(get(form).getData()));
-         }
-
+catch (NumberFormatException e){
+    if(isIn(form)){
+    return computeForm(get(form).getData());}
+}
+return 0;
     }
+
 
 
     private String resolveCellReferences(String formula) {

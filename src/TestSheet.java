@@ -197,7 +197,7 @@ public class TestSheet {
 
 
     @Test
-    public void testcomputeForm() {
+    public void testEval() {
 
         Ex2Sheet sheet = new Ex2Sheet(4, 4);
         sheet.set(0, 0, "3");
@@ -222,12 +222,12 @@ public class TestSheet {
      System.out.println( sheet.eval(0,0));
      System.out.println( sheet.eval(0,1));
      System.out.println( sheet.eval(0,2));
-     System.out.println( sheet.eval(0,3));
-     System.out.println( sheet.eval(1,0));
+    System.out.println( sheet.eval(0,3));
+    System.out.println( sheet.eval(1,0));
      System.out.println( sheet.eval(1,1));
-     System.out.println( sheet.eval(1,2));
+    System.out.println( sheet.eval(1,2));
      System.out.println( sheet.eval(1,3));
-     System.out.println( sheet.eval(2,0));
+    System.out.println( sheet.eval(2,0));
      System.out.println( sheet.eval(2,1));
      System.out.println( sheet.eval(2,2));
      System.out.println( sheet.eval(2,3));
