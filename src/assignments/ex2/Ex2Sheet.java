@@ -76,7 +76,7 @@ public class Ex2Sheet implements Sheet {
                 table[i][j] = new SCell(Ex2Utils.EMPTY_CELL,i,j);
             }
         }
-        //eval();
+        eval();
     }
     public Ex2Sheet() {
         this(Ex2Utils.WIDTH, Ex2Utils.HEIGHT);
@@ -85,8 +85,31 @@ public class Ex2Sheet implements Sheet {
     @Override
 
     public String value(int x, int y) {
-       return table[x][y].getData();
+        String ans = Ex2Utils.EMPTY_CELL;
+        if (isIn(x, y)) {
+            Cell c = get(x, y);
+            if (c != null) {
+                try {
+                    double num = Double.parseDouble(c.toString());
+
+                    // Format the number as a string
+                    String formatted = formatNumber(num);
+
+                    // If the formatted string is longer than 8 characters, truncate it
+                    if (formatted.length() > 8) {
+                        formatted = formatted.substring(0, 8);
+                    }
+
+                    ans = formatted;
+                } catch (NumberFormatException e) {
+                    ans = c.toString();
+                }
+            }
+        }
+        return ans;
     }
+
+
 
 
     public int setCellType(String cell, int t) {
@@ -140,16 +163,36 @@ return 0;
 
     @Override
     public void eval() {
-        int[][] dd = depth();// Ensure depth is computed with the current sheet
-            for (int x = 0; x < width(); x++) {
-                for (int y = 0; y < height(); y++) {
+        int[][] dd = depth(); // Ensure depth is computed with the current sheet
+        for (int x = 0; x < width(); x++) {
+            for (int y = 0; y < height(); y++) {
+                Cell cell = get(x, y);
+                if (cell != null && cell.getType() == Ex2Utils.FORM) { // If the cell contains a formula
+                    if (cell instanceof SCell sCell) {
+                        String formula = sCell.getData();
 
-                    {
-                    System.out.println(eval(x,y));
+                        // Check if the formula has already been evaluated and its value is valid
+                        if (!formula.startsWith("=") && !formula.equals(Ex2Utils.ERR_FORM)) {
+                            // Skip re-evaluating the formula and updating the cell's value
+                            continue;
+                        }
+                        // Evaluate the formula and update the cell's value
+                        String computedValue = String.valueOf(computeForm(formula));
+                        if (computedValue.equals(Ex2Utils.ERR_FORM)) {
+                            // Set the cell data to "ERROR_FORM" and type to ERR_FORM_FORMAT
+                            cell.setData(Ex2Utils.ERR_FORM);
+                            cell.setType(Ex2Utils.ERR_FORM_FORMAT);
+                        } else {
+                            // Otherwise, update the cell with the computed value
+                            cell.setData(computedValue);
+                            cell.setType(Ex2Utils.FORM);  // Set the type to FORM after evaluation
+                        }
                     }
                 }
             }
+        }
     }
+
 //    public String SendTosuitableComute(int x, int y) {
 //        String cor=numToChar(x)+"y";
 //        if(table[x][y].isText(cor)||table[x][y].isText(cor))
