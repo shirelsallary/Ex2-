@@ -108,7 +108,6 @@ public class Ex2Sheet implements Sheet {
 
 
     public SCell get(int x, int y) {
-
         return table[x][y];
     }
 
@@ -141,36 +140,21 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public void eval() {
-        int[][] dd = depth(); // Ensure depth is computed with the current sheet
-        for (int x = 0; x < width(); x++) {
-            for (int y = 0; y < height(); y++) {
-                Cell cell = get(x, y);
-                if (cell != null && cell.getType() == Ex2Utils.FORM) { // If the cell contains a formula
-                    if (cell instanceof SCell sCell) {
-                        String formula = sCell.getData();
+        int[][] dd = depth();// Ensure depth is computed with the current sheet
+        for(int i=0;i<width()*height;i++) {
 
-                        // Check if the formula has already been evaluated and its value is valid
-                        if (!formula.startsWith("=") && !formula.equals(Ex2Utils.ERR_FORM)) {
-                            // Skip re-evaluating the formula and updating the cell's value
-                            continue;
-                        }
-                        // Evaluate the formula and update the cell's value
-                        String computedValue = String.valueOf(computeForm(formula));
-                        if (computedValue.equals(Ex2Utils.ERR_FORM)) {
-                            // Set the cell data to "ERROR_FORM" and type to ERR_FORM_FORMAT
-                            cell.setData(Ex2Utils.ERR_FORM);
-                            cell.setType(Ex2Utils.ERR_FORM_FORMAT);
-                        } else {
-                            // Otherwise, update the cell with the computed value
-                            cell.setData(computedValue);
-                            cell.setType(Ex2Utils.FORM);  // Set the type to FORM after evaluation
-                        }
+            for (int x = 0; x < width(); x++) {
+                for (int y = 0; y < height(); y++) {
+                    if(dd[x][y]==i)
+                    {
+                        eval(x,y);
                     }
 
                 }
-            }
 
+            }
         }
+
     }
 //    public String SendTosuitableComute(int x, int y) {
 //        String cor=numToChar(x)+"y";
@@ -220,23 +204,52 @@ public class Ex2Sheet implements Sheet {
 
 
     public String eval(int x, int y) {
-        String ans = null;
-        // Check if the cell exists at the specified coordinates
-        if (get(x, y) != null) {
-            Cell cell = get(x, y);
 
-            // If the cell has a formula, evaluate it
-            if (cell.getType() == Ex2Utils.FORM) {
-                if (cell instanceof SCell) {
-                    ans = String.valueOf(((SCell) cell).computeForm(cell.toString()));
-                }
-            } else {
-                // If the cell does not have a formula, just return its value
-                ans = cell.toString();
-            }
+        if(get(x,y).getType()==Ex2Utils.FORM) {
+            return String.valueOf(computeForm(get(x,y).getData()));
         }
-        return ans;
-    }
+        if(get(x,y).getType()==Ex2Utils.NUMBER||get(x,y).getType()==Ex2Utils.TEXT)
+        {return get(x,y).getData();}
+       if(get(x,y).getType()==Ex2Utils.ERR_FORM_FORMAT)
+       {return Ex2Utils.ERR_FORM;}
+       if (get(x,y).getType()==Ex2Utils.ERR_CYCLE_FORM)
+       {return Ex2Utils.ERR_CYCLE;}
+      return null;
+
+
+//        try {
+//            SCell currentCell = this.table[x][y];
+//            String currentText = currentCell.getText();
+//
+//            // Handle number
+//            if (currentCell.isNumber(currentText)) {
+//                return currentText;
+//            }
+//
+//            // Handle plain text
+//            if (currentCell.isText(currentText)) {
+//                return currentText;
+//            }
+//
+//            // Handle formulas
+//            if (currentText.startsWith("=")) {
+//                String formula = currentText.substring(1); // Remove '='
+//                formula = resolveCellReferences(formula); // Resolve any cell references
+//                if (formula.equals("Err_Form")) {
+//                    return "Err_Form"; // Invalid reference
+//                }
+//                try {
+//                    return String.valueOf(computeForm(formula)); // Compute the formula
+//                } catch (Exception e) {
+//                    return "Err_Form"; // Error in computation
+//                }
+//            }
+//
+//            return "Err_Form"; // Invalid cell content
+//        } catch (Exception e) {
+//            return "Err_Form"; // General error
+//        }
+   }
 
 
     public String value(String n)
@@ -311,8 +324,9 @@ public class Ex2Sheet implements Sheet {
         }
 
         // If it's text, set error type and return false
-        if (isTextS(format)) {
-            return true;
+        if (isTextS(format)&& !cord.isEmpty()) {
+            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
+            return false;
         }
 
         // If it's a number, it can be computed
@@ -322,6 +336,7 @@ public class Ex2Sheet implements Sheet {
 
         // If it's not a formula, it cannot be computed
         if (!isFormS(format)) {
+            get(name).setType(Ex2Utils.ERR_FORM_FORMAT);
             return false;
         }
 
@@ -335,7 +350,7 @@ public class Ex2Sheet implements Sheet {
 
         // Check for self-reference
         if (dependCells.contains(name)) {
-            setCellType(name, -1);
+            setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
             return false;
         }
 
@@ -344,19 +359,19 @@ public class Ex2Sheet implements Sheet {
             // First, check if the dependent cell exists and has a valid type
             Cell cell = get(dependCell);
             if (cell == null) {
-                setCellType(name, -2);  // Invalid reference
+                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Invalid reference
                 return false;
             }
 
             // Check if any dependent cell has type -1 or -2
-            if (cell.getType() == -1 || cell.getType() == -2) {
-                setCellType(name, -1);  // Propagate the error
+            if (cell.getType() == Ex2Utils.ERR_FORM_FORMAT || cell.getType() == Ex2Utils.ERR_CYCLE_FORM) {
+                setCellType(name, Ex2Utils.ERR_FORM_FORMAT);  // Propagate the error
                 return false;
             }
 
             // Check for circular dependencies
             if (cord.contains(dependCell)) {
-                setCellType(name, -1);
+                setCellType(name, Ex2Utils.ERR_CYCLE_FORM);
                 return false;
             }
         }
@@ -625,7 +640,7 @@ public String getLineFromScell(String element)
 
 
 
-    private double computeForm(String form) {
+    public double computeForm(String form) {
         if (form.charAt(0) == '=') form = form.substring(1);
 
         if (form.indexOf("(") != -1) {
@@ -676,7 +691,7 @@ public String getLineFromScell(String element)
          try{
         return Double.parseDouble(form);}
          catch(NumberFormatException e){
-             return Double.parseDouble((get(form).getData()));
+             return (computeForm(get(form).getData()));
          }
 
     }

@@ -34,6 +34,7 @@ public class TestSheet
        assertFalse(sheet.canBeComputedNow("A3",l,sheet.get(0,3).getData()));
        l.clear();
        sheet.set(1,0,"=A3");
+       boolean a = sheet.canBeComputedNow("b0",l,sheet.get(1,0).getData());
        assertFalse(sheet.canBeComputedNow("b0",l,sheet.get(1,0).getData()));
        l.clear();
        sheet.set(1,1,"=A0");
@@ -155,6 +156,20 @@ public class TestSheet
 //3  3  -1 -1
 //3  -1  -1 -1
 //1   -2  -1 -2
+
+    }
+
+
+
+    @Test
+    public void testComputeForm()
+    {
+        Ex2Sheet sheet=new Ex2Sheet(4,4);
+        sheet.set(0,0,"3");
+        sheet.set(0,1,"=A0+A0");
+         String rsult= String.valueOf(sheet.computeForm(sheet.get(0,1).getData()));
+          assertEquals("6.0",rsult);
+
 
     }
 }
