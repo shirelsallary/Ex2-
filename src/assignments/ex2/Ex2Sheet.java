@@ -193,6 +193,7 @@ return 0;
         }
     }
 
+
 //    public String SendTosuitableComute(int x, int y) {
 //        String cor=numToChar(x)+"y";
 //        if(table[x][y].isText(cor)||table[x][y].isText(cor))
